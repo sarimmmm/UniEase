@@ -48,7 +48,7 @@ export default function LandingPage() {
               <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Users className="w-8 h-8 text-[#1e3a8a]" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">Study Buddy Marketplace</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">Study Buddy </h3>
               <p className="text-gray-600">
                 Connect with peers who need help or offer assistance in subjects you excel at.
               </p>
