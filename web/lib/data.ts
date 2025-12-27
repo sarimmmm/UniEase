@@ -19,48 +19,32 @@ export const difficultyLevels: ('Beginner' | 'Intermediate' | 'Advanced')[] = [
   'Intermediate',
   'Advanced',
 ];
-
 export const dummyHelpRequests: HelpRequest[] = [
   {
     id: '1',
     studentId: 's1',
-    studentName: 'Alex Johnson',
-    studentEmail: 'alex.johnson@university.edu',
-    subject: 'Calculus',
+    studentName: 'John Doe',
+    studentEmail: 'john@example.com',
+    subject: 'Mathematics',
     topic: 'Integration by Parts',
     description: 'Struggling with understanding the concept of integration by parts. Need help with practice problems.',
     difficultyLevel: 'Intermediate',
-    createdAt: new Date('2024-01-15'),
+    createdAt: new Date('2024-01-15').toISOString(), // FIXED: Added .toISOString()
     status: 'Open',
   },
   {
     id: '2',
     studentId: 's2',
-    studentName: 'Sarah Chen',
-    studentEmail: 'sarah.chen@university.edu',
-    subject: 'Programming Fundamentals',
+    studentName: 'Jane Smith',
+    studentEmail: 'jane@example.com',
+    subject: 'Computer Science',
     topic: 'Bitwise Operations',
-    description: 'Need help understanding bitwise operators (AND, OR, XOR) and their practical applications.',
-    difficultyLevel: 'Advanced',
-    createdAt: new Date('2024-01-16'),
-    status: 'Open',
-  },
-  {
-    id: '3',
-    studentId: 's3',
-    studentName: 'Michael Brown',
-    studentEmail: 'michael.brown@university.edu',
-    subject: 'Physics',
-    topic: 'Quantum Mechanics Basics',
-    description: 'Looking for a study buddy to work through quantum mechanics homework problems together.',
+    description: 'Need help understanding how to use bitwise operators to multiply numbers in C++.',
     difficultyLevel: 'Beginner',
-    createdAt: new Date('2024-01-17'),
+    createdAt: new Date('2024-01-16').toISOString(), // FIXED: Added .toISOString()
     status: 'Open',
-  },
+  }
 ];
-
-
-
 
 
 
@@ -169,5 +153,6 @@ export const gradePoints: Record<string, number> = {
   'D-': 0.7,
   'F': 0.0,
 };
+
 
 
