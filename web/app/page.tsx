@@ -95,11 +95,16 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className="text-gray-400">&copy; 2024 UniEase. All rights reserved.</p>
-        </div>
-      </footer>
+    <footer className="bg-gray-900 text-white py-8 mt-auto">
+  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+    <p className="text-gray-400">
+      &copy; 2025 UniEase. All rights reserved.
+    </p>
+    <p className="text-gray-500 text-sm mt-2">
+      Designed and Developed by <span className="text-blue-400 font-medium">Sarim</span>
+    </p>
+  </div>
+</footer>
     </div>
   );
 }
