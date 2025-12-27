@@ -1,5 +1,56 @@
 import { supabase } from './supabase';
-import { HelpRequest } from '@/types';
+import { HelpRequest, Faculty, FacultyReview } from '@/types'; // Added Faculty types
+
+// --- FACULTY DIRECTORY (NEW: Replaces Dummy Data) ---
+
+export async function fetchFaculty(): Promise<Faculty[]> {
+  try {
+    const { data, error } = await supabase
+      .from('faculty')
+      .select('*')
+      .order('name', { ascending: true });
+
+    if (error) throw error;
+
+    // Map database snake_case to frontend CamelCase
+    return data.map((f) => ({
+      id: f.id,
+      name: f.name,
+      department: f.department,
+      officeHours: f.office_hours, // Translation
+      email: f.email,
+      campus: f.campus,
+      createdAt: f.created_at,
+    }));
+  } catch (error) {
+    console.error('Error fetching faculty:', error);
+    return [];
+  }
+}
+
+export async function fetchFacultyReviews(): Promise<FacultyReview[]> {
+  try {
+    const { data, error } = await supabase
+      .from('faculty_reviews')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    return data.map((r) => ({
+      id: r.id,
+      facultyId: r.faculty_id,
+      studentId: r.student_id,
+      studentName: r.student_name,
+      rating: r.rating,
+      comment: r.comment,
+      createdAt: r.created_at,
+    }));
+  } catch (error) {
+    console.error('Error fetching reviews:', error);
+    return [];
+  }
+}
 
 // --- STUDY REQUESTS ---
 
@@ -29,7 +80,7 @@ export async function fetchStudyRequests(): Promise<HelpRequest[]> {
         topic: request.topic,
         description: request.description,
         difficultyLevel: request.difficulty_level,
-        createdAt: request.created_at, // Keep as string to match Interface
+        createdAt: request.created_at,
         status: request.status,
       })) || []
     );
