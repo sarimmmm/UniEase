@@ -110,7 +110,7 @@ export default function FacultyPage() {
         <div className="space-y-6">
           <header>
             <h1 className="text-3xl font-bold text-[#1e3a8a]">Faculty Directory</h1>
-            <p className="text-gray-600">Dynamic University Directory - Synchronized with Supabase</p>
+            <p className="text-gray-600">Dynamic University Directory</p>
           </header>
 
           {/* SEARCH & FILTERS SECTION */}
