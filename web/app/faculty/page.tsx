@@ -5,7 +5,7 @@ import Navbar from '@/components/Navbar';
 import LoginModal from '@/components/LoginModal';
 import { fetchFaculty, fetchFacultyReviews, addFacultyReview } from '@/lib/database'; 
 import { Faculty, FacultyReview } from '@/types';
-import { Search, Star, Clock, Mail, Building2, ChevronDown, ChevronUp, MessageSquare, MapPin, ShieldCheck } from 'lucide-react';
+import { Search, Star, Clock, Mail, ChevronDown, ChevronUp, MessageSquare, ShieldCheck, UserSecret } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function FacultyPage() {
@@ -21,6 +21,7 @@ export default function FacultyPage() {
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [isAnonymous, setIsAnonymous] = useState(false); // Anonymity State
   const [reviewForm, setReviewForm] = useState({ rating: 5, comment: '' });
 
   useEffect(() => {
@@ -54,8 +55,6 @@ export default function FacultyPage() {
     { id: 'mtn', name: 'Multan' },
     { id: 'lhr', name: 'Lahore' },
     { id: 'isb', name: 'Islamabad' },
-    { id: 'khi', name: 'Karachi' },
-    { id: 'pwr', name: 'Peshawar' }
   ];
 
   const getFacultyReviews = (fId: string) => allReviews.filter((r) => r.facultyId === fId);
@@ -70,20 +69,21 @@ export default function FacultyPage() {
   const handleToggle = (id: string) => {
     setSelectedFacultyId(selectedFacultyId === id ? null : id);
     setShowReviewForm(false);
+    setIsAnonymous(false);
   };
 
   const handleSubmitReview = async (e: React.FormEvent, facultyId: string) => {
     e.preventDefault();
     if (!isAuthenticated) return setShowLoginModal(true);
 
-    // FIX: Retrieve faculty name locally to satisfy the database NOT-NULL constraint
     const currentFaculty = facultyList.find(f => f.id === facultyId);
+    const displayUserName = isAnonymous ? "Anonymous Student" : (user.email?.split('@')[0] || 'Student');
 
     const result = await addFacultyReview({
       facultyId: facultyId,
-      facultyName: currentFaculty?.name || 'Faculty Member', // Added facultyName
+      facultyName: currentFaculty?.name || 'Faculty Member',
       studentId: user.id,
-      studentName: user.email?.split('@')[0] || 'Student',
+      studentName: displayUserName,
       rating: reviewForm.rating,
       comment: reviewForm.comment,
     });
@@ -93,7 +93,7 @@ export default function FacultyPage() {
         id: Math.random().toString(),
         facultyId: facultyId,
         studentId: user.id,
-        studentName: user.email?.split('@')[0] || 'Student',
+        studentName: displayUserName,
         rating: reviewForm.rating,
         comment: reviewForm.comment,
         createdAt: new Date().toISOString(),
@@ -101,21 +101,28 @@ export default function FacultyPage() {
       setAllReviews([newLocalReview, ...allReviews]);
       setReviewForm({ rating: 5, comment: '' });
       setShowReviewForm(false);
+      setIsAnonymous(false);
     } else {
       alert(`Error: ${result.error}`);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
         <div className="space-y-6">
-          <header>
-            <h1 className="text-3xl font-bold text-[#1e3a8a]">Faculty Directory</h1>
-            <p className="text-gray-600">Get teachers information and share feedback.</p>
+          {/* FORMAL HEADER SECTION */}
+          <header className="mb-8 border-l-4 border-[#1e3a8a] pl-5 py-0.5">
+            <h1 className="text-3xl font-bold tracking-tight text-[#1e3a8a] mb-1">
+              Faculty Directory
+            </h1>
+            <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-slate-500">
+              Faculty Information & Student Evaluations
+            </p>
           </header>
 
+          {/* SEARCH & FILTERS */}
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 space-y-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -127,7 +134,6 @@ export default function FacultyPage() {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <select 
                 className="w-full px-4 py-2.5 border border-gray-200 rounded-lg outline-none bg-gray-50 text-sm"
@@ -137,18 +143,18 @@ export default function FacultyPage() {
                 <option value="all">All Departments</option>
                 {departments.map(d => <option key={d} value={d}>{d}</option>)}
               </select>
-
               <select 
                 className="w-full px-4 py-2.5 border border-gray-200 rounded-lg outline-none bg-gray-50 text-sm"
                 onChange={(e) => setSelectedCampus(e.target.value)}
                 value={selectedCampus}
               >
                 <option value="all">All Campuses</option>
-                {campuses.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                {campuses.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
               </select>
             </div>
           </div>
 
+          {/* DIRECTORY LIST */}
           <div className="space-y-4">
             {loading ? (
               <div className="text-center py-12 text-gray-400 italic">Connecting to University Database...</div>
@@ -171,14 +177,12 @@ export default function FacultyPage() {
                           </div>
                         </div>
                       </div>
-
                       <div className="flex-1 max-w-xl grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-600">
                         <div className="flex items-center gap-2"><Clock className="w-4 h-4 text-gray-300" /> {faculty.officeHours}</div>
                         <a href={`mailto:${faculty.email}`} onClick={e => e.stopPropagation()} className="flex items-center gap-2 text-blue-600 hover:underline truncate">
                           <Mail className="w-4 h-4 text-blue-300" /> {faculty.email}
                         </a>
                       </div>
-
                       <div className="flex items-center gap-4">
                         <div className="flex items-center gap-1.5 bg-yellow-50 px-3 py-1 rounded-full border border-yellow-100">
                           <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
@@ -202,16 +206,31 @@ export default function FacultyPage() {
                         <form onSubmit={e => handleSubmitReview(e, faculty.id)} onClick={e => e.stopPropagation()} className="mb-6 p-6 bg-white border rounded-xl shadow-sm space-y-4">
                           <div className="bg-blue-50 border-l-4 border-[#1e3a8a] p-4 rounded-r-lg flex items-start gap-3">
                             <ShieldCheck className="w-5 h-5 text-[#1e3a8a] mt-0.5" />
-                            <p className="text-sm text-[#1e3a8a] font-medium leading-relaxed italic">
-                              "Note: Please keep your review constructive and respectful. Professional feedback helps the entire UniEase community make better decisions."
+                            <p className="text-xs text-[#1e3a8a] font-medium leading-relaxed italic">
+                              Professional feedback helps the entire UniEase community make better decisions.
                             </p>
                           </div>
-
-                          <div className="flex gap-1.5">
-                            {[1, 2, 3, 4, 5].map(s => (
-                              <Star key={s} className={`w-6 h-6 cursor-pointer transition-colors ${s <= reviewForm.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-200'}`} onClick={() => setReviewForm({ ...reviewForm, rating: s })} />
-                            ))}
+                          
+                          <div className="flex items-center justify-between">
+                            <div className="flex gap-1.5">
+                              {[1, 2, 3, 4, 5].map(s => (
+                                <Star key={s} className={`w-6 h-6 cursor-pointer transition-colors ${s <= reviewForm.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-200'}`} onClick={() => setReviewForm({ ...reviewForm, rating: s })} />
+                              ))}
+                            </div>
+                            
+                            {/* ANONYMITY TOGGLE */}
+                            <div className="flex items-center gap-2">
+                              <input 
+                                type="checkbox" 
+                                id="anonymous" 
+                                checked={isAnonymous}
+                                onChange={(e) => setIsAnonymous(e.target.checked)}
+                                className="w-4 h-4 rounded border-gray-300 text-[#1e3a8a] focus:ring-[#1e3a8a]"
+                              />
+                              <label htmlFor="anonymous" className="text-xs font-bold text-slate-500 uppercase tracking-wider cursor-pointer">Post Anonymously</label>
+                            </div>
                           </div>
+
                           <textarea className="w-full p-4 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-[#1e3a8a]/20" placeholder="Share your experience..." rows={3} value={reviewForm.comment} onChange={e => setReviewForm({ ...reviewForm, comment: e.target.value })} required />
                           <button type="submit" className="bg-[#1e3a8a] hover:bg-blue-800 text-white px-8 py-2.5 rounded-lg font-bold text-sm transition-colors">Post Review</button>
                         </form>
@@ -224,7 +243,10 @@ export default function FacultyPage() {
                           reviews.map((r) => (
                             <div key={r.id} className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm">
                               <div className="flex justify-between items-center mb-2">
-                                <span className="text-sm font-bold text-gray-800">{r.studentName}</span>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-sm font-bold text-gray-800">{r.studentName}</span>
+                                  {r.studentName === "Anonymous Student" && <span className="text-[9px] px-1.5 py-0.5 bg-slate-100 text-slate-500 rounded font-bold uppercase tracking-tighter border border-slate-200">Private</span>}
+                                </div>
                                 <div className="flex gap-0.5">
                                   {[1, 2, 3, 4, 5].map(s => <Star key={s} className={`w-3.5 h-3.5 ${s <= r.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-100'}`} />)}
                                 </div>
@@ -242,6 +264,17 @@ export default function FacultyPage() {
           </div>
         </div>
       </div>
+
+      {/* INSTITUTIONAL FOOTER */}
+      <footer className="border-t border-gray-200 bg-white py-6 mt-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4">
+          <p className="text-xs text-slate-500 font-medium">© 2025 UniEase Systems. All rights reserved.</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
+            Developed by <span className="text-[#1e3a8a]">Sarim</span>
+          </p>
+        </div>
+      </footer>
+
       <LoginModal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)} title="Faculty Review" message="Please sign in with your student account to share feedback." />
     </div>
   );
