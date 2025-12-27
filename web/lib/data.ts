@@ -27,28 +27,12 @@ export const dummyHelpRequests: HelpRequest[] = [
     studentEmail: 'john@example.com',
     subject: 'Mathematics',
     topic: 'Integration by Parts',
-    description: 'Struggling with understanding the concept of integration by parts. Need help with practice problems.',
+    description: 'Struggling with understanding integration by parts.',
     difficultyLevel: 'Intermediate',
-    createdAt: new Date('2024-01-15').toISOString(), // FIXED: Added .toISOString()
-    status: 'Open',
-  },
-  {
-    id: '2',
-    studentId: 's2',
-    studentName: 'Jane Smith',
-    studentEmail: 'jane@example.com',
-    subject: 'Computer Science',
-    topic: 'Bitwise Operations',
-    description: 'Need help understanding how to use bitwise operators to multiply numbers in C++.',
-    difficultyLevel: 'Beginner',
-    createdAt: new Date('2024-01-16').toISOString(), // FIXED: Added .toISOString()
+    createdAt: new Date('2024-01-15').toISOString(), // FIXED: Now a string
     status: 'Open',
   }
 ];
-
-
-
-
 
 
 
@@ -153,6 +137,7 @@ export const gradePoints: Record<string, number> = {
   'D-': 0.7,
   'F': 0.0,
 };
+
 
 
 
