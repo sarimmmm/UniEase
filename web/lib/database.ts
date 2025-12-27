@@ -1,36 +1,21 @@
 import { supabase } from './supabase';
 import { HelpRequest, Faculty, FacultyReview } from '@/types';
 
-
-
-
-
-
-
-
-
-
-// Example of a global fetch check
-if (error?.message?.includes('401') || error?.status === 401) {
-  // Clear the stale session and redirect to login
-  await supabase.auth.signOut();
-  window.location.href = '/login?reason=expired';
+/**
+ * HELPER: handleAuthError
+ * This function checks for 401 errors and redirects users if their session expires.
+ */
+async function handleAuthError(error: any) {
+  if (error?.message?.includes('401') || error?.status === 401) {
+    console.warn("Session expired. Redirecting to login...");
+    await supabase.auth.signOut();
+    if (typeof window !== 'undefined') {
+      window.location.href = '/login?reason=expired';
+    }
+    return true;
+  }
+  return false;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // --- 1. FACULTY DIRECTORY & REVIEWS ---
 
@@ -41,7 +26,10 @@ export async function fetchFaculty(): Promise<Faculty[]> {
       .select('*')
       .order('name', { ascending: true });
 
-    if (error) throw error;
+    if (error) {
+      await handleAuthError(error);
+      throw error;
+    }
 
     return data.map((f) => ({
       id: f.id,
@@ -65,7 +53,10 @@ export async function fetchFacultyReviews(): Promise<FacultyReview[]> {
       .select('*')
       .order('created_at', { ascending: false });
 
-    if (error) throw error;
+    if (error) {
+      await handleAuthError(error);
+      throw error;
+    }
 
     return data.map((r) => ({
       id: r.id,
@@ -82,13 +73,9 @@ export async function fetchFacultyReviews(): Promise<FacultyReview[]> {
   }
 }
 
-/**
- * addFacultyReview
- * Fixed: Now includes facultyName to satisfy the NOT-NULL constraint.
- */
 export async function addFacultyReview(review: {
   facultyId: string;
-  facultyName: string; // Added to satisfy DB constraint
+  facultyName: string;
   studentId: string;
   studentName: string;
   rating: number;
@@ -98,7 +85,7 @@ export async function addFacultyReview(review: {
     const { error } = await supabase.from('faculty_reviews').insert([
       {
         faculty_id: review.facultyId,
-        faculty_name: review.facultyName, // Maps to the required DB column
+        faculty_name: review.facultyName,
         student_id: review.studentId,
         student_name: review.studentName,
         rating: review.rating,
@@ -106,7 +93,10 @@ export async function addFacultyReview(review: {
       },
     ]);
 
-    if (error) return { success: false, error: error.message };
+    if (error) {
+      await handleAuthError(error);
+      return { success: false, error: error.message };
+    }
     return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message };
@@ -122,7 +112,10 @@ export async function fetchStudyRequests(): Promise<HelpRequest[]> {
       .select('*')
       .order('created_at', { ascending: false });
 
-    if (error) throw error;
+    if (error) {
+      await handleAuthError(error);
+      throw error;
+    }
 
     return data?.map((request) => ({
       id: request.id,
@@ -165,7 +158,10 @@ export async function createStudyRequest(request: {
       },
     ]);
 
-    if (error) return { success: false, error: error.message };
+    if (error) {
+      await handleAuthError(error);
+      return { success: false, error: error.message };
+    }
     return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message };
@@ -182,7 +178,10 @@ export async function fetchStudentGrades(studentId: string): Promise<any[]> {
       .eq('user_id', studentId)
       .order('created_at', { ascending: false });
 
-    if (error) throw error;
+    if (error) {
+      await handleAuthError(error);
+      throw error;
+    }
 
     const gradePoints: Record<string, number> = {
       'A+': 4.0, 'A': 4.0, 'A-': 3.67, 'B+': 3.33, 'B': 3.0,
@@ -221,7 +220,10 @@ export async function saveStudentGrade(
       }
     ]);
 
-    if (error) return { success: false, error: error.message };
+    if (error) {
+      await handleAuthError(error);
+      return { success: false, error: error.message };
+    }
     return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message };
@@ -247,7 +249,10 @@ export async function updateStudentGrade(
       .eq('id', gradeId)
       .eq('user_id', studentId);
 
-    if (error) return { success: false, error: error.message };
+    if (error) {
+      await handleAuthError(error);
+      return { success: false, error: error.message };
+    }
     return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message };
@@ -265,10 +270,12 @@ export async function deleteStudentGrade(
       .eq('id', gradeId)
       .eq('user_id', studentId);
 
-    if (error) return { success: false, error: error.message };
+    if (error) {
+      await handleAuthError(error);
+      return { success: false, error: error.message };
+    }
     return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message };
   }
 }
-
