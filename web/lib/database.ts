@@ -1,7 +1,7 @@
 import { supabase } from './supabase';
 import { HelpRequest, Faculty, FacultyReview } from '@/types';
 
-// --- FACULTY DIRECTORY & REVIEWS ---
+// --- 1. FACULTY DIRECTORY & REVIEWS ---
 
 export async function fetchFaculty(): Promise<Faculty[]> {
   try {
@@ -51,10 +51,6 @@ export async function fetchFacultyReviews(): Promise<FacultyReview[]> {
   }
 }
 
-/**
- * NEW: addFacultyReview
- * This function saves the review to Supabase and requires the user to be logged in.
- */
 export async function addFacultyReview(review: {
   facultyId: string;
   studentId: string;
@@ -66,7 +62,7 @@ export async function addFacultyReview(review: {
     const { error } = await supabase.from('faculty_reviews').insert([
       {
         faculty_id: review.facultyId,
-        student_id: review.studentId, // Matches RLS policy
+        student_id: review.studentId,
         student_name: review.studentName,
         rating: review.rating,
         comment: review.comment,
@@ -80,5 +76,141 @@ export async function addFacultyReview(review: {
   }
 }
 
-// --- STUDY REQUESTS, GRADES, ETC (REMAINDERS KEPT AS IS) ---
-// ... [Remaining fetchStudyRequests, createStudyRequest, fetchStudentGrades, etc. go here]
+// --- 2. STUDY REQUESTS ---
+
+export async function fetchStudyRequests(): Promise<HelpRequest[]> {
+  try {
+    const { data, error } = await supabase
+      .from('study_requests')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    return data?.map((request) => ({
+      id: request.id,
+      studentId: request.student_id,
+      studentName: request.student_name,
+      studentEmail: request.student_email,
+      subject: request.subject,
+      topic: request.topic,
+      description: request.description,
+      difficultyLevel: request.difficulty_level,
+      createdAt: request.created_at,
+      status: request.status,
+    })) || [];
+  } catch (error) {
+    console.error('Error fetching study requests:', error);
+    return [];
+  }
+}
+
+export async function createStudyRequest(request: any): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { error } = await supabase.from('study_requests').insert([
+      {
+        student_id: request.studentId,
+        student_name: request.studentName,
+        student_email: request.studentEmail,
+        subject: request.subject,
+        topic: request.topic,
+        description: request.description,
+        difficulty_level: request.difficultyLevel,
+        status: 'Open',
+      },
+    ]);
+
+    if (error) return { success: false, error: error.message };
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
+// --- 3. STUDENT GRADES (GPA CALCULATOR) ---
+
+export async function fetchStudentGrades(studentId: string): Promise<any[]> {
+  try {
+    const { data, error } = await supabase
+      .from('student_grades')
+      .select('*')
+      .eq('user_id', studentId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    const gradePoints: Record<string, number> = {
+      'A+': 4.0, 'A': 4.0, 'A-': 3.67, 'B+': 3.33, 'B': 3.0,
+      'B-': 2.67, 'C+': 2.33, 'C': 2.0, 'C-': 1.67, 'D+': 1.33,
+      'D': 1.0, 'D-': 0.7, 'F': 0.0,
+    };
+
+    return data?.map((grade) => ({
+      id: grade.id,
+      courseName: grade.course_name,
+      credits: grade.credits,
+      grade: grade.grade,
+      breakdown: grade.breakdown,
+      percentage: grade.percentage || 0,
+      points: gradePoints[grade.grade] || 0,
+    })) || [];
+  } catch (error) {
+    console.error('Error fetching student grades:', error);
+    return [];
+  }
+}
+
+export async function saveStudentGrade(studentId: string, course: any): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { error } = await supabase.from('student_grades').insert([
+      {
+        user_id: studentId,
+        course_name: course.courseName,
+        credits: course.credits,
+        grade: course.grade,
+        breakdown: course.breakdown || null,
+        percentage: course.percentage || null,
+      }
+    ]);
+    if (error) return { success: false, error: error.message };
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
+export async function updateStudentGrade(studentId: string, gradeId: string, course: any): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { error } = await supabase
+      .from('student_grades')
+      .update({
+        course_name: course.courseName,
+        credits: course.credits,
+        grade: course.grade,
+        percentage: course.percentage || null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', gradeId)
+      .eq('user_id', studentId);
+
+    if (error) return { success: false, error: error.message };
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
+export async function deleteStudentGrade(studentId: string, gradeId: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { error } = await supabase
+      .from('student_grades')
+      .delete()
+      .eq('id', gradeId)
+      .eq('user_id', studentId);
+
+    if (error) return { success: false, error: error.message };
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
