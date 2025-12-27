@@ -3,7 +3,7 @@ export interface Student {
   name: string;
   email: string;
   university: string;
-  createdAt: string; // Changed to string for consistency
+  createdAt: string; 
 }
 
 export interface Faculty {
@@ -13,7 +13,7 @@ export interface Faculty {
   officeHours: string;
   email: string;
   campus: string; 
-  createdAt: string; // Changed to string for consistency
+  createdAt: string; 
 }
 
 export interface FacultyReview {
@@ -23,10 +23,9 @@ export interface FacultyReview {
   studentName: string;
   rating: number; 
   comment: string;
-  createdAt: string; // Changed to string for consistency
+  createdAt: string; 
 }
 
-// THIS WAS THE MISSING EXPORT CAUSING THE ERROR
 export interface HelpRequest {
   id: string;
   studentId: string;
@@ -35,9 +34,9 @@ export interface HelpRequest {
   subject: string;
   topic: string;
   description: string;
-  difficultyLevel: 'Beginner' | 'Intermediate' | 'Advanced';
+  // difficultyLevel has been removed to simplify the UI
   status: 'Open' | 'Connected' | 'Closed';
-  createdAt: string; // Must be string to match database.ts mapping
+  createdAt: string; 
 }
 
 export interface Course {
@@ -53,5 +52,5 @@ export interface ConnectionRequest {
   requesterId: string;
   requesteeId: string;
   status: 'Pending' | 'Accepted' | 'Rejected';
-  createdAt: string; // Changed to string
+  createdAt: string; 
 }
