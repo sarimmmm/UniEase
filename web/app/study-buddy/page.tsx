@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import LoginModal from '@/components/LoginModal';
-import { subjects } from '@/lib/data'; // Removed difficultyLevels
+import { subjects } from '@/lib/data'; 
 import { fetchStudyRequests, createStudyRequest } from '@/lib/database';
 import { HelpRequest } from '@/types';
 import { Search, Plus, User, Mail, AlertCircle } from 'lucide-react';
@@ -39,7 +39,6 @@ export default function StudyBuddyPage() {
     }
   };
 
-  // Simplified Form state (Removed difficultyLevel)
   const [formData, setFormData] = useState({
     subject: '',
     topic: '',
@@ -64,6 +63,7 @@ export default function StudyBuddyPage() {
     const userName = user.user_metadata?.name || user.email?.split('@')[0] || 'User';
     const userEmail = user.email || '';
 
+    // FIXED: Removed difficultyLevel to match updated Types
     const result = await createStudyRequest({
       studentId: user.id,
       studentName: userName,
@@ -71,8 +71,6 @@ export default function StudyBuddyPage() {
       subject: formData.subject,
       topic: formData.topic,
       description: formData.description,
-      // Pass a default or omit if you updated the database column
-      difficultyLevel: 'Beginner', 
     });
 
     if (result.success) {
@@ -81,7 +79,7 @@ export default function StudyBuddyPage() {
       showToast('Request posted successfully!', 'success');
       await loadRequests();
     } else {
-      showToast(result.error || 'Failed to post request. Please try again.', 'error');
+      showToast(result.error || 'Failed to post request.', 'error');
     }
   };
 
@@ -121,7 +119,6 @@ export default function StudyBuddyPage() {
             </button>
           </div>
 
-          {/* SIMPLIFIED POST FORM */}
           {showForm && (
             <div className="bg-white rounded-lg shadow-md p-6">
               <h2 className="text-xl font-bold text-gray-900 mb-4">Post a Help Request</h2>
@@ -135,40 +132,32 @@ export default function StudyBuddyPage() {
                     required
                   >
                     <option value="">Select a subject</option>
-                    {subjects.map((subject) => (
-                      <option key={subject} value={subject}>{subject}</option>
+                    {subjects.map((s) => (
+                      <option key={s} value={s}>{s}</option>
                     ))}
                   </select>
                 </div>
-
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Topic</label>
                   <input
                     type="text"
                     value={formData.topic}
                     onChange={(e) => setFormData({ ...formData, topic: e.target.value })}
-                    placeholder="e.g., Integration by Parts, Bitwise Operations"
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-[#1e3a8a]"
                     required
                   />
                 </div>
-
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
                   <textarea
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    placeholder="Describe what help you need..."
                     rows={4}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-[#1e3a8a]"
                     required
                   />
                 </div>
-
-                <button
-                  type="submit"
-                  className="w-full bg-[#1e3a8a] text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
-                >
+                <button type="submit" className="w-full bg-[#1e3a8a] text-white py-3 rounded-lg font-semibold hover:bg-blue-700">
                   Post Request
                 </button>
               </form>
@@ -176,35 +165,25 @@ export default function StudyBuddyPage() {
           )}
 
           <div className="bg-white rounded-lg shadow-md p-6">
-            {/* CLEANER FILTER SECTION */}
             <div className="flex flex-col md:flex-row gap-4 mb-6">
               <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Search by topic, subject, or description..."
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-[#1e3a8a]"
+                  placeholder="Search..."
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg"
                 />
               </div>
               <select
                 value={selectedSubject}
                 onChange={(e) => setSelectedSubject(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-[#1e3a8a]"
+                className="px-4 py-2 border border-gray-300 rounded-lg"
               >
                 <option value="all">All Subjects</option>
-                {subjects.map((subject) => (
-                  <option key={subject} value={subject}>{subject}</option>
-                ))}
+                {subjects.map((s) => <option key={s} value={s}>{s}</option>)}
               </select>
-            </div>
-
-            <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-              <p className="text-sm text-blue-800">
-                <span className="font-semibold">Note:</span> Requests expire after 30 days. Only active requests from the last 30 days are displayed.
-              </p>
             </div>
 
             <div className="space-y-4">
@@ -213,15 +192,10 @@ export default function StudyBuddyPage() {
                   {[1, 2, 3].map((i) => <StudyRequestSkeleton key={i} />)}
                 </div>
               ) : filteredRequests.length === 0 ? (
-                <div className="text-center py-12 text-gray-500">
-                  <p>No help requests found. Be the first to post one!</p>
-                </div>
+                <div className="text-center py-12 text-gray-500">No requests found.</div>
               ) : (
                 filteredRequests.map((request) => (
-                  <div
-                    key={request.id}
-                    className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow"
-                  >
+                  <div key={request.id} className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
                     <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-3">
@@ -235,31 +209,26 @@ export default function StudyBuddyPage() {
                         </div>
                         <h4 className="text-lg font-semibold text-gray-900 mb-2">{request.topic}</h4>
                         <p className="text-gray-600 mb-4">{request.description}</p>
-                        <div className="text-sm text-gray-500">
-                          {new Date(request.createdAt).toLocaleDateString()}
-                        </div>
-                        
+                        <div className="text-sm text-gray-500">{new Date(request.createdAt).toLocaleDateString()}</div>
                         {connectedRequests.has(request.id) && (
                           <div className="mt-4 p-3 bg-blue-50 rounded-lg flex items-center gap-2 text-sm text-[#1e3a8a]">
                             <Mail className="w-4 h-4" />
-                            <span className="font-semibold">Contact:</span>
-                            <span>{request.studentEmail}</span>
+                            <span className="font-semibold">Contact:</span> {request.studentEmail}
                           </div>
                         )}
                       </div>
                       <div className="flex-shrink-0">
-                        {connectedRequests.has(request.id) ? (
-                          <button disabled className="px-6 py-2 bg-gray-200 text-gray-600 rounded-lg font-semibold cursor-not-allowed">
-                            Request Sent
-                          </button>
-                        ) : (
-                          <button
-                            onClick={() => handleConnect(request.id)}
-                            className="px-6 py-2 bg-[#1e3a8a] text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors"
-                          >
-                            Connect
-                          </button>
-                        )}
+                        <button
+                          onClick={() => handleConnect(request.id)}
+                          disabled={connectedRequests.has(request.id)}
+                          className={`px-6 py-2 rounded-lg font-semibold transition-colors ${
+                            connectedRequests.has(request.id) 
+                              ? 'bg-gray-200 text-gray-600 cursor-not-allowed' 
+                              : 'bg-[#1e3a8a] text-white hover:bg-blue-700'
+                          }`}
+                        >
+                          {connectedRequests.has(request.id) ? 'Request Sent' : 'Connect'}
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -269,16 +238,7 @@ export default function StudyBuddyPage() {
           </div>
         </div>
       </div>
-
-      <LoginModal
-        isOpen={showLoginModal}
-        onClose={() => {
-          setShowLoginModal(false);
-          if (user) loadRequests();
-        }}
-        title="Login Required"
-        message="Please sign in to post a request or connect with other students."
-      />
+      <LoginModal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)} title="Login Required" />
     </div>
   );
 }
