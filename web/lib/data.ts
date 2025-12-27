@@ -1,3 +1,4 @@
+// lib/data.ts
 // Dummy data for development
 import { HelpRequest, Faculty, FacultyReview } from '@/types';
 
@@ -19,6 +20,7 @@ export const difficultyLevels: ('Beginner' | 'Intermediate' | 'Advanced')[] = [
   'Intermediate',
   'Advanced',
 ];
+
 export const dummyHelpRequests: HelpRequest[] = [
   {
     id: '1',
@@ -29,31 +31,10 @@ export const dummyHelpRequests: HelpRequest[] = [
     topic: 'Integration by Parts',
     description: 'Struggling with understanding integration by parts.',
     difficultyLevel: 'Intermediate',
-    createdAt: new Date('2024-01-15').toISOString(), // FIXED: Now a string
+    createdAt: new Date('2024-01-15').toISOString(), // FIXED
     status: 'Open',
   }
 ];
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 export const dummyFaculty: Faculty[] = [
   {
@@ -62,7 +43,7 @@ export const dummyFaculty: Faculty[] = [
     department: 'Mathematics',
     officeHours: 'Monday, Wednesday 2:00 PM - 4:00 PM',
     email: 'emily.watson@university.edu',
-    createdAt: new Date('2023-08-01'),
+    createdAt: new Date('2023-08-01').toISOString(), // FIXED
     campus: 'mtn',
   },
   {
@@ -71,7 +52,7 @@ export const dummyFaculty: Faculty[] = [
     department: 'Computer Science',
     officeHours: 'Tuesday, Thursday 10:00 AM - 12:00 PM',
     email: 'james.miller@university.edu',
-    createdAt: new Date('2023-08-01'),
+    createdAt: new Date('2023-08-01').toISOString(), // FIXED
     campus: 'mtn',
   },
   {
@@ -80,16 +61,18 @@ export const dummyFaculty: Faculty[] = [
     department: 'Physics',
     officeHours: 'Monday 1:00 PM - 3:00 PM, Friday 9:00 AM - 11:00 AM',
     email: 'lisa.anderson@university.edu',
-    createdAt: new Date('2023-08-01'),
-  campus: 'mtn',},
+    createdAt: new Date('2023-08-01').toISOString(), // FIXED
+    campus: 'mtn',
+  },
   {
     id: 'f4',
     name: 'Prof. David Lee',
     department: 'Chemistry',
     officeHours: 'Wednesday 3:00 PM - 5:00 PM',
     email: 'david.lee@university.edu',
-    createdAt: new Date('2023-08-01'),
- campus: 'mtn', },
+    createdAt: new Date('2023-08-01').toISOString(), // FIXED
+    campus: 'mtn',
+  },
 ];
 
 export const dummyFacultyReviews: FacultyReview[] = [
@@ -100,7 +83,7 @@ export const dummyFacultyReviews: FacultyReview[] = [
     studentName: 'Alex Johnson',
     rating: 5,
     comment: 'Dr. Watson is an excellent teacher! She explains complex calculus concepts in a very clear and understandable way.',
-    createdAt: new Date('2024-01-10'),
+    createdAt: new Date('2024-01-10').toISOString(), // FIXED
   },
   {
     id: 'r2',
@@ -109,7 +92,7 @@ export const dummyFacultyReviews: FacultyReview[] = [
     studentName: 'Sarah Chen',
     rating: 4,
     comment: 'Very helpful during office hours. Made integration by parts much clearer for me.',
-    createdAt: new Date('2024-01-12'),
+    createdAt: new Date('2024-01-12').toISOString(), // FIXED
   },
   {
     id: 'r3',
@@ -118,7 +101,7 @@ export const dummyFacultyReviews: FacultyReview[] = [
     studentName: 'Sarah Chen',
     rating: 5,
     comment: 'Prof. Miller is amazing! His explanations of programming concepts are top-notch.',
-    createdAt: new Date('2024-01-08'),
+    createdAt: new Date('2024-01-08').toISOString(), // FIXED
   },
 ];
 
@@ -137,7 +120,3 @@ export const gradePoints: Record<string, number> = {
   'D-': 0.7,
   'F': 0.0,
 };
-
-
-
-
