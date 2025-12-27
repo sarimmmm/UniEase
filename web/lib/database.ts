@@ -53,10 +53,11 @@ export async function fetchFacultyReviews(): Promise<FacultyReview[]> {
 
 /**
  * addFacultyReview
- * Saves teacher reviews to the database.
+ * Fixed: Now includes facultyName to satisfy the NOT-NULL constraint.
  */
 export async function addFacultyReview(review: {
   facultyId: string;
+  facultyName: string; // Added to satisfy DB constraint
   studentId: string;
   studentName: string;
   rating: number;
@@ -66,7 +67,8 @@ export async function addFacultyReview(review: {
     const { error } = await supabase.from('faculty_reviews').insert([
       {
         faculty_id: review.facultyId,
-        student_id: review.studentId, // This must be the UUID from useAuth()
+        faculty_name: review.facultyName, // Maps to the required DB column
+        student_id: review.studentId,
         student_name: review.studentName,
         rating: review.rating,
         comment: review.comment,
