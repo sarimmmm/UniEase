@@ -60,10 +60,9 @@ export interface HelpRequest {
   topic: string;
   description: string;
   difficultyLevel: 'Beginner' | 'Intermediate' | 'Advanced';
-  createdAt: Date;
   status: 'Open' | 'Connected' | 'Closed';
+  createdAt: string;
 }
-
 export interface Faculty {
   id: string;
   name: string;
@@ -98,6 +97,7 @@ export interface ConnectionRequest {
   status: 'Pending' | 'Accepted' | 'Rejected';
   createdAt: Date;
 }
+
 
 
 
