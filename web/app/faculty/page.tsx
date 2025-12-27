@@ -113,7 +113,7 @@ export default function FacultyPage() {
         <div className="space-y-6">
           <header>
             <h1 className="text-3xl font-bold text-[#1e3a8a]">Faculty Directory</h1>
-            <p className="text-gray-600">Connect with your teachers and share feedback.</p>
+            <p className="text-gray-600">Get teachers information and share feedback.</p>
           </header>
 
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 space-y-4">
