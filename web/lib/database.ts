@@ -1,281 +1,155 @@
-import { supabase } from './supabase';
-import { HelpRequest, Faculty, FacultyReview } from '@/types';
+'use client';
 
-/**
- * HELPER: handleAuthError
- * This function checks for 401 errors and redirects users if their session expires.
- */
-async function handleAuthError(error: any) {
-  if (error?.message?.includes('401') || error?.status === 401) {
-    console.warn("Session expired. Redirecting to login...");
-    await supabase.auth.signOut();
-    if (typeof window !== 'undefined') {
-      window.location.href = '/login?reason=expired';
+import { useState, useEffect } from 'react';
+import Navbar from '@/components/Navbar';
+import LoginModal from '@/components/LoginModal';
+import { fetchFaculty, fetchFacultyReviews, addFacultyReview } from '@/lib/database'; 
+import { Faculty, FacultyReview } from '@/types';
+import { Search, Star, Clock, Mail, ChevronDown, ChevronUp, MessageSquare, ShieldCheck } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+
+export default function FacultyPage() {
+  const { user } = useAuth();
+  const [facultyList, setFacultyList] = useState<Faculty[]>([]);
+  const [allReviews, setAllReviews] = useState<FacultyReview[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedFacultyId, setSelectedFacultyId] = useState<string | null>(null);
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [isAnonymous, setIsAnonymous] = useState(false);
+  const [reviewForm, setReviewForm] = useState({ rating: 5, comment: '' });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadData() {
+      const [f, r] = await Promise.all([fetchFaculty(), fetchFacultyReviews()]);
+      setFacultyList(f);
+      setAllReviews(r);
+      setLoading(false);
     }
-    return true;
-  }
-  return false;
-}
+    loadData();
+  }, []);
 
-// --- 1. FACULTY DIRECTORY & REVIEWS ---
+  const handleSubmitReview = async (e: React.FormEvent, facultyId: string) => {
+    e.preventDefault();
+    if (!user) return;
 
-export async function fetchFaculty(): Promise<Faculty[]> {
-  try {
-    const { data, error } = await supabase
-      .from('faculty')
-      .select('*')
-      .order('name', { ascending: true });
+    const currentF = facultyList.find(f => f.id === facultyId);
+    const displayName = isAnonymous ? "Anonymous Student" : (user.email?.split('@')[0] || 'Student');
 
-    if (error) {
-      await handleAuthError(error);
-      throw error;
+    const result = await addFacultyReview({
+      facultyId,
+      facultyName: currentF?.name || 'Faculty',
+      studentId: user.id,
+      studentName: displayName,
+      rating: reviewForm.rating,
+      comment: reviewForm.comment,
+      isAnonymous
+    });
+
+    if (result.success) {
+      setAllReviews([{ id: Math.random().toString(), facultyId, studentId: user.id, studentName: displayName, rating: reviewForm.rating, comment: reviewForm.comment, createdAt: new Date().toISOString() }, ...allReviews]);
+      setShowReviewForm(false);
+      setReviewForm({ rating: 5, comment: '' });
     }
+  };
 
-    return data.map((f) => ({
-      id: f.id,
-      name: f.name,
-      department: f.department,
-      officeHours: f.office_hours,
-      email: f.email,
-      campus: f.campus,
-      createdAt: f.created_at,
-    }));
-  } catch (error) {
-    console.error('Error fetching faculty:', error);
-    return [];
-  }
-}
+  return (
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <Navbar />
+      <main className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+        {/* FORMAL HEADER SECTION */}
+        <header className="mb-10 border-l-4 border-[#1e3a8a] pl-6 py-1">
+          <h1 className="text-3xl font-bold tracking-tight text-[#1e3a8a] mb-1">Faculty Directory</h1>
+          <p className="text-xs font-bold uppercase tracking-[0.15em] text-slate-500">
+            Faculty Information & Student Evaluations
+          </p>
+        </header>
 
-export async function fetchFacultyReviews(): Promise<FacultyReview[]> {
-  try {
-    const { data, error } = await supabase
-      .from('faculty_reviews')
-      .select('*')
-      .order('created_at', { ascending: false });
+        {/* SEARCH SECTION */}
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-8">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <input 
+              type="text" 
+              placeholder="Search faculty members..." 
+              className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#1e3a8a] outline-none"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+        </div>
 
-    if (error) {
-      await handleAuthError(error);
-      throw error;
-    }
+        {/* DIRECTORY LISTING */}
+        <div className="space-y-4">
+          {loading ? (
+            <div className="text-center py-12 text-gray-400">Synchronizing Database...</div>
+          ) : (
+            facultyList.filter(f => f.name.toLowerCase().includes(searchTerm.toLowerCase())).map((faculty) => (
+              <div key={faculty.id} className="bg-white border rounded-xl overflow-hidden shadow-sm">
+                <div className="p-6 cursor-pointer flex justify-between items-center" onClick={() => setSelectedFacultyId(selectedFacultyId === faculty.id ? null : faculty.id)}>
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-[#1e3a8a] rounded-full flex items-center justify-center text-white font-bold">{faculty.name[0]}</div>
+                    <div>
+                      <h3 className="font-bold text-gray-900">{faculty.name}</h3>
+                      <p className="text-xs text-slate-500 uppercase font-bold tracking-wider">{faculty.department}</p>
+                    </div>
+                  </div>
+                  <ChevronDown className={`text-gray-400 transition-transform ${selectedFacultyId === faculty.id ? 'rotate-180' : ''}`} />
+                </div>
 
-    return data.map((r) => ({
-      id: r.id,
-      facultyId: r.faculty_id,
-      studentId: r.student_id,
-      studentName: r.student_name,
-      rating: r.rating,
-      comment: r.comment,
-      createdAt: r.created_at,
-    }));
-  } catch (error) {
-    console.error('Error fetching reviews:', error);
-    return [];
-  }
-}
+                {selectedFacultyId === faculty.id && (
+                  <div className="px-6 pb-6 bg-slate-50 border-t">
+                    <div className="py-4 flex justify-between items-center">
+                      <h4 className="font-bold text-sm text-slate-700 uppercase tracking-widest">Student Reviews</h4>
+                      <button onClick={() => setShowReviewForm(!showReviewForm)} className="text-xs font-bold text-[#1e3a8a] uppercase">
+                        {showReviewForm ? 'Cancel' : 'Add Evaluation'}
+                      </button>
+                    </div>
 
-export async function addFacultyReview(review: {
-  facultyId: string;
-  facultyName: string;
-  studentId: string;
-  studentName: string;
-  rating: number;
-  comment: string;
-}): Promise<{ success: boolean; error?: string }> {
-  try {
-    const { error } = await supabase.from('faculty_reviews').insert([
-      {
-        faculty_id: review.facultyId,
-        faculty_name: review.facultyName,
-        student_id: review.studentId,
-        student_name: review.studentName,
-        rating: review.rating,
-        comment: review.comment,
-      },
-    ]);
+                    {showReviewForm && (
+                      <form onSubmit={(e) => handleSubmitReview(e, faculty.id)} className="bg-white p-4 rounded-lg border mb-4 space-y-4">
+                        <div className="flex justify-between items-center">
+                          <div className="flex gap-1">
+                            {[1, 2, 3, 4, 5].map(s => <Star key={s} onClick={() => setReviewForm({...reviewForm, rating: s})} className={`w-5 h-5 cursor-pointer ${s <= reviewForm.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-200'}`} />)}
+                          </div>
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" checked={isAnonymous} onChange={e => setIsAnonymous(e.target.checked)} className="rounded border-gray-300 text-[#1e3a8a]" />
+                            <span className="text-[10px] font-bold uppercase text-slate-500">Anonymous</span>
+                          </label>
+                        </div>
+                        <textarea className="w-full p-3 border rounded text-sm focus:ring-1 focus:ring-[#1e3a8a] outline-none" rows={3} placeholder="Provide professional feedback..." value={reviewForm.comment} onChange={e => setReviewForm({...reviewForm, comment: e.target.value})} required />
+                        <button type="submit" className="bg-[#1e3a8a] text-white px-6 py-2 rounded font-bold text-xs uppercase tracking-widest">Submit</button>
+                      </form>
+                    )}
 
-    if (error) {
-      await handleAuthError(error);
-      return { success: false, error: error.message };
-    }
-    return { success: true };
-  } catch (error: any) {
-    return { success: false, error: error.message };
-  }
-}
+                    <div className="space-y-3">
+                      {allReviews.filter(r => r.facultyId === faculty.id).map(r => (
+                        <div key={r.id} className="bg-white p-4 rounded-lg border border-slate-100 shadow-sm">
+                          <div className="flex justify-between mb-1">
+                            <span className="text-xs font-bold text-slate-800">{r.studentName}</span>
+                            <div className="flex gap-0.5">{[1, 2, 3, 4, 5].map(s => <Star key={s} className={`w-3 h-3 ${s <= r.rating ? 'fill-yellow-400 text-yellow-400' : 'text-slate-100'}`} />)}</div>
+                          </div>
+                          <p className="text-sm text-slate-600 italic">"{r.comment}"</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))
+          )}
+        </div>
+      </main>
 
-// --- 2. STUDY REQUESTS ---
-
-export async function fetchStudyRequests(): Promise<HelpRequest[]> {
-  try {
-    const { data, error } = await supabase
-      .from('study_requests')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      await handleAuthError(error);
-      throw error;
-    }
-
-    return data?.map((request) => ({
-      id: request.id,
-      studentId: request.student_id,
-      studentName: request.student_name,
-      studentEmail: request.student_email,
-      subject: request.subject,
-      topic: request.topic,
-      description: request.description,
-      difficultyLevel: request.difficulty_level,
-      createdAt: request.created_at,
-      status: request.status,
-    })) || [];
-  } catch (error) {
-    console.error('Error fetching study requests:', error);
-    return [];
-  }
-}
-
-export async function createStudyRequest(request: {
-  studentId: string;
-  studentName: string;
-  studentEmail: string;
-  subject: string;
-  topic: string;
-  description: string;
-  difficultyLevel: 'Beginner' | 'Intermediate' | 'Advanced';
-}): Promise<{ success: boolean; error?: string }> {
-  try {
-    const { error } = await supabase.from('study_requests').insert([
-      {
-        student_id: request.studentId,
-        student_name: request.studentName,
-        student_email: request.studentEmail,
-        subject: request.subject,
-        topic: request.topic,
-        description: request.description,
-        difficulty_level: request.difficultyLevel,
-        status: 'Open',
-      },
-    ]);
-
-    if (error) {
-      await handleAuthError(error);
-      return { success: false, error: error.message };
-    }
-    return { success: true };
-  } catch (error: any) {
-    return { success: false, error: error.message };
-  }
-}
-
-// --- 3. STUDENT GRADES (GPA CALCULATOR) ---
-
-export async function fetchStudentGrades(studentId: string): Promise<any[]> {
-  try {
-    const { data, error } = await supabase
-      .from('student_grades')
-      .select('*')
-      .eq('user_id', studentId)
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      await handleAuthError(error);
-      throw error;
-    }
-
-    const gradePoints: Record<string, number> = {
-      'A+': 4.0, 'A': 4.0, 'A-': 3.67, 'B+': 3.33, 'B': 3.0,
-      'B-': 2.67, 'C+': 2.33, 'C': 2.0, 'C-': 1.67, 'D+': 1.33,
-      'D': 1.0, 'D-': 0.7, 'F': 0.0,
-    };
-
-    return data?.map((grade) => ({
-      id: grade.id,
-      courseName: grade.course_name,
-      credits: grade.credits,
-      grade: grade.grade,
-      breakdown: grade.breakdown,
-      percentage: grade.percentage || 0,
-      points: gradePoints[grade.grade] || 0,
-    })) || [];
-  } catch (error) {
-    console.error('Error fetching student grades:', error);
-    return [];
-  }
-}
-
-export async function saveStudentGrade(
-  studentId: string, 
-  course: { courseName: string; credits: number; grade: string; breakdown?: any; percentage?: number }
-): Promise<{ success: boolean; error?: string }> {
-  try {
-    const { error } = await supabase.from('student_grades').insert([
-      {
-        user_id: studentId,
-        course_name: course.courseName,
-        credits: course.credits,
-        grade: course.grade,
-        breakdown: course.breakdown || null,
-        percentage: course.percentage !== undefined ? course.percentage : null,
-      }
-    ]);
-
-    if (error) {
-      await handleAuthError(error);
-      return { success: false, error: error.message };
-    }
-    return { success: true };
-  } catch (error: any) {
-    return { success: false, error: error.message };
-  }
-}
-
-export async function updateStudentGrade(
-  studentId: string,
-  gradeId: string,
-  course: { courseName: string; credits: number; grade: string; breakdown?: any; percentage?: number }
-): Promise<{ success: boolean; error?: string }> {
-  try {
-    const { error } = await supabase
-      .from('student_grades')
-      .update({
-        course_name: course.courseName,
-        credits: course.credits,
-        grade: course.grade,
-        breakdown: course.breakdown || null,
-        percentage: course.percentage !== undefined ? course.percentage : null,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', gradeId)
-      .eq('user_id', studentId);
-
-    if (error) {
-      await handleAuthError(error);
-      return { success: false, error: error.message };
-    }
-    return { success: true };
-  } catch (error: any) {
-    return { success: false, error: error.message };
-  }
-}
-
-export async function deleteStudentGrade(
-  studentId: string,
-  gradeId: string
-): Promise<{ success: boolean; error?: string }> {
-  try {
-    const { error } = await supabase
-      .from('student_grades')
-      .delete()
-      .eq('id', gradeId)
-      .eq('user_id', studentId);
-
-    if (error) {
-      await handleAuthError(error);
-      return { success: false, error: error.message };
-    }
-    return { success: true };
-  } catch (error: any) {
-    return { success: false, error: error.message };
-  }
+      {/* INSTITUTIONAL FOOTER */}
+      <footer className="border-t border-gray-200 bg-white py-6">
+        <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4">
+          <p className="text-xs text-slate-500 font-medium">© 2025 UniEase Systems. Secure Campus Network.</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
+            Developed by <span className="text-[#1e3a8a]">Sarim</span>
+          </p>
+        </div>
+      </footer>
+    </div>
+  );
 }
