@@ -264,15 +264,7 @@ export default function FacultyPage() {
         </div>
       </div>
 
-      {/* INSTITUTIONAL FOOTER */}
-      <footer className="border-t border-gray-200 bg-white py-6 mt-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-xs text-slate-500 font-medium">© 2025 UniEase Systems. All rights reserved.</p>
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
-            Developed by <span className="text-[#1e3a8a]">Sarim</span>
-          </p>
-        </div>
-      </footer>
+      
 
       <LoginModal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)} title="Faculty Review" message="Please sign in with your student account to share feedback." />
     </div>
