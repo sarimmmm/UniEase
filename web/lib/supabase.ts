@@ -1,28 +1,18 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
+// Single warning if variables are missing
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn('Missing Supabase environment variables. Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY');
+  console.error('CRITICAL: Missing Supabase environment variables.');
 }
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-  },
-});
-
-
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    persistSession: true, // Keep the user logged in
-    autoRefreshToken: true, // Automatically renew the JWT before it expires
-    detectSessionInUrl: true
+    persistSession: true,      // Essential for university students using mobile/laptops
+    autoRefreshToken: true,    // Fixes the "JWT Expired" error by renewing tokens
+    detectSessionInUrl: true,  // Helpful for OAuth/Email confirmation redirects
+    storageKey: 'uniease-auth' // Prevents conflicts with other Supabase projects in localhost
   }
 });
