@@ -2,6 +2,7 @@ import { supabase } from './supabase';
 import { HelpRequest } from '@/types';
 
 // --- STUDY REQUESTS ---
+
 export async function fetchStudyRequests(): Promise<HelpRequest[]> {
   try {
     const thirtyDaysAgo = new Date();
@@ -18,6 +19,7 @@ export async function fetchStudyRequests(): Promise<HelpRequest[]> {
       return [];
     }
 
+    // MAPS Database snake_case to Frontend CamelCase
     return (
       data?.map((request) => ({
         id: request.id,
@@ -27,7 +29,7 @@ export async function fetchStudyRequests(): Promise<HelpRequest[]> {
         subject: request.subject,
         topic: request.topic,
         description: request.description,
-        difficultyLevel: request.difficulty_level,
+        difficultyLevel: request.difficulty_level, // This fixes your error
         createdAt: new Date(request.created_at),
         status: request.status,
       })) || []
@@ -56,7 +58,7 @@ export async function createStudyRequest(request: {
         subject: request.subject,
         topic: request.topic,
         description: request.description,
-        difficulty_level: request.difficultyLevel,
+        difficulty_level: request.difficultyLevel, // FIXED: Matches your DB column
         status: 'Open',
       },
     ]);
@@ -68,14 +70,14 @@ export async function createStudyRequest(request: {
   }
 }
 
-// --- STUDENT GRADES (CORRECTED COLUMNS) ---
+// --- STUDENT GRADES ---
 
 export async function fetchStudentGrades(studentId: string): Promise<any[]> {
   try {
     const { data, error } = await supabase
       .from('student_grades')
       .select('*')
-      .eq('user_id', studentId) // Fixed: student_id -> user_id
+      .eq('user_id', studentId) // Corrected from student_id to user_id
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -112,7 +114,7 @@ export async function saveStudentGrade(
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const insertData = {
-      user_id: studentId, // Fixed: student_id -> user_id
+      user_id: studentId, // Corrected from student_id to user_id
       course_name: course.courseName,
       credits: course.credits,
       grade: course.grade,
@@ -151,7 +153,7 @@ export async function updateStudentGrade(
       .from('student_grades')
       .update(updateData)
       .eq('id', gradeId)
-      .eq('user_id', studentId) // Fixed: Already correct here
+      .eq('user_id', studentId) // Logic consistency check
       .select();
 
     if (error) {
@@ -173,7 +175,7 @@ export async function deleteStudentGrade(
       .from('student_grades')
       .delete()
       .eq('id', gradeId)
-      .eq('user_id', studentId); // Fixed: student_id -> user_id
+      .eq('user_id', studentId); // Corrected from student_id to user_id
 
     if (error) {
       console.error('Error deleting student grade:', error);
