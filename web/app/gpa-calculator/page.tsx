@@ -47,12 +47,12 @@ interface Course {
 }
 
 const defaultBreakdown: AssessmentBreakdown = {
-  quizzes: { total: 10, obt: 0 },
-  assignments: { total: 10, obt: 0 },
-  classParticipation: { total: 5, obt: 0 },
-  sessional1: { total: 15, obt: 0 },
-  sessional2: { total: 15, obt: 0 },
-  finalExam: { total: 45, obt: 0 },
+  quizzes: { total: 0, obt: 0 },
+  assignments: { total: 0, obt: 0 },
+  classParticipation: { total: 0, obt: 0 },
+  sessional1: { total: 0, obt: 0 },
+  sessional2: { total: 0, obt: 0 },
+  finalExam: { total: 0, obt: 0 },
   project: { total: 0, obt: 0 },
   labTasks: { total: 0, obt: 0 },
 };
