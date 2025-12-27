@@ -54,3 +54,22 @@ export interface ConnectionRequest {
   createdAt: Date;
 }
 
+
+export interface Faculty {
+  id: string;
+  name: string;
+  department: string;
+  officeHours: string; // Matches your interface
+  email: string;
+  createdAt: Date;
+}
+
+export interface FacultyReview {
+  id: string;
+  facultyId: string; // Changed to match your provided interface
+  studentId: string;
+  studentName: string;
+  rating: number; // 1-5
+  comment: string;
+  createdAt: Date;
+}
