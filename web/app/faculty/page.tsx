@@ -3,12 +3,10 @@
 import { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import LoginModal from '@/components/LoginModal';
-// Import your new database service functions
-import { fetchFaculty, fetchFacultyReviews } from '@/lib/database'; 
+import { fetchFaculty, fetchFacultyReviews, addFacultyReview } from '@/lib/database'; 
 import { Faculty, FacultyReview } from '@/types';
-import { Search, Star, Clock, Mail, GraduationCap, Building2, ChevronDown, ChevronUp, MessageSquare, MapPin } from 'lucide-react';
+import { Search, Star, Clock, Mail, Building2, ChevronDown, ChevronUp, MessageSquare, MapPin, ShieldCheck } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/lib/supabase'; // Still needed for the specific 'insert' action
 
 export default function FacultyPage() {
   const { user } = useAuth();
@@ -25,7 +23,6 @@ export default function FacultyPage() {
   const [loading, setLoading] = useState(true);
   const [reviewForm, setReviewForm] = useState({ rating: 5, comment: '' });
 
-  // Use the centralized services to load data
   useEffect(() => {
     async function loadData() {
       setLoading(true);
@@ -34,7 +31,6 @@ export default function FacultyPage() {
           fetchFaculty(),
           fetchFacultyReviews()
         ]);
-        
         setFacultyList(facultyData);
         setAllReviews(reviewData);
       } catch (error) {
@@ -46,7 +42,6 @@ export default function FacultyPage() {
     loadData();
   }, []);
 
-  // Filter Logic remains the same
   const filteredFaculty = facultyList.filter((faculty) => {
     const matchesSearch = faculty.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesDept = selectedDepartment === 'all' || faculty.department === selectedDepartment;
@@ -81,25 +76,30 @@ export default function FacultyPage() {
     e.preventDefault();
     if (!isAuthenticated) return setShowLoginModal(true);
 
-    const newReview = {
-      faculty_id: facultyId,
-      student_id: user.id,
-      student_name: user.email?.split('@')[0] || 'Student',
+    const result = await addFacultyReview({
+      facultyId: facultyId,
+      studentId: user.id,
+      studentName: user.email?.split('@')[0] || 'Student',
       rating: reviewForm.rating,
       comment: reviewForm.comment,
-    };
+    });
 
-    const { data } = await supabase.from('faculty_reviews').insert([newReview]).select();
-    if (data) {
-      // Re-map the response to match frontend CamelCase types
-      const formatted = { 
-        ...data[0], 
-        facultyId: data[0].faculty_id, 
-        studentName: data[0].student_name 
+    if (result.success) {
+      // Optimistically update the UI instead of a full reload
+      const newLocalReview: FacultyReview = {
+        id: Math.random().toString(),
+        facultyId: facultyId,
+        studentId: user.id,
+        studentName: user.email?.split('@')[0] || 'Student',
+        rating: reviewForm.rating,
+        comment: reviewForm.comment,
+        createdAt: new Date().toISOString(),
       };
-      setAllReviews([...allReviews, formatted]);
+      setAllReviews([newLocalReview, ...allReviews]);
       setReviewForm({ rating: 5, comment: '' });
       setShowReviewForm(false);
+    } else {
+      alert(`Error: ${result.error}`);
     }
   };
 
@@ -110,7 +110,7 @@ export default function FacultyPage() {
         <div className="space-y-6">
           <header>
             <h1 className="text-3xl font-bold text-[#1e3a8a]">Faculty Directory</h1>
-            <p className="text-gray-600">Dynamic University Directory</p>
+            <p className="text-gray-600">Connect with your teachers and share feedback.</p>
           </header>
 
           {/* SEARCH & FILTERS SECTION */}
@@ -195,7 +195,7 @@ export default function FacultyPage() {
                       <div className="flex items-center gap-4">
                         <div className="flex items-center gap-1.5 bg-yellow-50 px-3 py-1 rounded-full border border-yellow-100">
                           <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                          <span className="text-sm font-bold text-yellow-700">{rating === 0 ? 'New' : rating}</span>
+                          <span className="text-sm font-bold text-yellow-700">{rating === '0.0' ? 'New' : rating}</span>
                         </div>
                         {expanded ? <ChevronUp className="text-gray-400" /> : <ChevronDown className="text-gray-400" />}
                       </div>
@@ -212,14 +212,23 @@ export default function FacultyPage() {
                       </div>
 
                       {showReviewForm && (
-                        <form onSubmit={e => handleSubmitReview(e, faculty.id)} onClick={e => e.stopPropagation()} className="mb-6 p-4 bg-white border rounded-xl shadow-sm">
-                          <div className="flex gap-1.5 mb-4">
+                        <form onSubmit={e => handleSubmitReview(e, faculty.id)} onClick={e => e.stopPropagation()} className="mb-6 p-6 bg-white border rounded-xl shadow-sm space-y-4">
+                          {/* RESPECTFUL NOTE */}
+                          <div className="bg-blue-50 border-l-4 border-[#1e3a8a] p-4 rounded-r-lg flex items-start gap-3">
+                            <ShieldCheck className="w-5 h-5 text-[#1e3a8a] mt-0.5" />
+                            <p className="text-sm text-[#1e3a8a] font-medium leading-relaxed">
+                              <strong>Community Guideline:</strong> Please keep your feedback respectful and constructive. 
+                              Helpful reviews empower the UniEase community while maintaining academic professionalism.
+                            </p>
+                          </div>
+
+                          <div className="flex gap-1.5">
                             {[1, 2, 3, 4, 5].map(s => (
-                              <Star key={s} className={`w-6 h-6 cursor-pointer ${s <= reviewForm.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-200'}`} onClick={() => setReviewForm({ ...reviewForm, rating: s })} />
+                              <Star key={s} className={`w-6 h-6 cursor-pointer transition-colors ${s <= reviewForm.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-200'}`} onClick={() => setReviewForm({ ...reviewForm, rating: s })} />
                             ))}
                           </div>
-                          <textarea className="w-full p-4 border rounded-lg text-sm mb-4 outline-none focus:ring-1 focus:ring-[#1e3a8a]" placeholder="Share your experience..." rows={3} value={reviewForm.comment} onChange={e => setReviewForm({ ...reviewForm, comment: e.target.value })} required />
-                          <button type="submit" className="bg-[#1e3a8a] text-white px-8 py-2.5 rounded-lg font-bold text-sm">Post Review</button>
+                          <textarea className="w-full p-4 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-[#1e3a8a]/20 focus:border-[#1e3a8a]" placeholder="What was your experience with this teacher? (e.g. grading style, teaching method...)" rows={3} value={reviewForm.comment} onChange={e => setReviewForm({ ...reviewForm, comment: e.target.value })} required />
+                          <button type="submit" className="bg-[#1e3a8a] hover:bg-blue-800 text-white px-8 py-2.5 rounded-lg font-bold text-sm transition-colors">Post Review</button>
                         </form>
                       )}
 
