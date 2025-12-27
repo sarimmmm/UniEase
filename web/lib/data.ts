@@ -59,6 +59,34 @@ export const dummyHelpRequests: HelpRequest[] = [
   },
 ];
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 export const dummyFaculty: Faculty[] = [
   {
     id: 'f1',
@@ -67,6 +95,7 @@ export const dummyFaculty: Faculty[] = [
     officeHours: 'Monday, Wednesday 2:00 PM - 4:00 PM',
     email: 'emily.watson@university.edu',
     createdAt: new Date('2023-08-01'),
+    campus: 'mtn',
   },
   {
     id: 'f2',
@@ -75,6 +104,7 @@ export const dummyFaculty: Faculty[] = [
     officeHours: 'Tuesday, Thursday 10:00 AM - 12:00 PM',
     email: 'james.miller@university.edu',
     createdAt: new Date('2023-08-01'),
+    campus: 'mtn',
   },
   {
     id: 'f3',
@@ -83,7 +113,7 @@ export const dummyFaculty: Faculty[] = [
     officeHours: 'Monday 1:00 PM - 3:00 PM, Friday 9:00 AM - 11:00 AM',
     email: 'lisa.anderson@university.edu',
     createdAt: new Date('2023-08-01'),
-  },
+  campus: 'mtn',},
   {
     id: 'f4',
     name: 'Prof. David Lee',
@@ -91,7 +121,7 @@ export const dummyFaculty: Faculty[] = [
     officeHours: 'Wednesday 3:00 PM - 5:00 PM',
     email: 'david.lee@university.edu',
     createdAt: new Date('2023-08-01'),
-  },
+ campus: 'mtn', },
 ];
 
 export const dummyFacultyReviews: FacultyReview[] = [
@@ -139,4 +169,5 @@ export const gradePoints: Record<string, number> = {
   'D-': 0.7,
   'F': 0.0,
 };
+
 
