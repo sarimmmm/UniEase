@@ -51,18 +51,20 @@ export interface FacultyReview {
 
 
 
-export interface HelpRequest {
-  id: string;
-  studentId: string;
-  studentName: string;
-  studentEmail: string;
-  subject: string;
-  topic: string;
-  description: string;
-  difficultyLevel: 'Beginner' | 'Intermediate' | 'Advanced';
-  status: 'Open' | 'Connected' | 'Closed';
-  createdAt: string;
-}
+export const dummyHelpRequests: HelpRequest[] = [
+  {
+    id: '1',
+    studentId: 's1',
+    studentName: 'John Doe',
+    studentEmail: 'john@example.com',
+    subject: 'Mathematics',
+    topic: 'Integration by Parts',
+    description: 'Struggling with understanding integration by parts.',
+    difficultyLevel: 'Intermediate',
+    createdAt: new Date('2024-01-15').toISOString(), // FIXED: Now a string
+    status: 'Open',
+  }
+];
 export interface Faculty {
   id: string;
   name: string;
@@ -97,6 +99,7 @@ export interface ConnectionRequest {
   status: 'Pending' | 'Accepted' | 'Rejected';
   createdAt: Date;
 }
+
 
 
 
