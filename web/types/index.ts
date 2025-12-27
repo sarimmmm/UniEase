@@ -3,21 +3,8 @@ export interface Student {
   name: string;
   email: string;
   university: string;
-  createdAt: Date;
+  createdAt: string; // Changed to string for consistency
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 export interface Faculty {
   id: string;
@@ -25,8 +12,8 @@ export interface Faculty {
   department: string;
   officeHours: string;
   email: string;
-  campus: string; // ADD THIS LINE
-  createdAt: Date;
+  campus: string; 
+  createdAt: string; // Changed to string for consistency
 }
 
 export interface FacultyReview {
@@ -36,59 +23,28 @@ export interface FacultyReview {
   studentName: string;
   rating: number; 
   comment: string;
-  createdAt: Date;
+  createdAt: string; // Changed to string for consistency
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-export const dummyHelpRequests: HelpRequest[] = [
-  {
-    id: '1',
-    studentId: 's1',
-    studentName: 'John Doe',
-    studentEmail: 'john@example.com',
-    subject: 'Mathematics',
-    topic: 'Integration by Parts',
-    description: 'Struggling with understanding integration by parts.',
-    difficultyLevel: 'Intermediate',
-    createdAt: new Date('2024-01-15').toISOString(), // FIXED: Now a string
-    status: 'Open',
-  }
-];
-export interface Faculty {
+// THIS WAS THE MISSING EXPORT CAUSING THE ERROR
+export interface HelpRequest {
   id: string;
-  name: string;
-  department: string;
-  officeHours: string;
-  email: string;
-  createdAt: Date;
-}
-
-export interface FacultyReview {
-  id: string;
-  facultyId: string;
   studentId: string;
   studentName: string;
-  rating: number; // 1-5
-  comment: string;
-  createdAt: Date;
+  studentEmail: string;
+  subject: string;
+  topic: string;
+  description: string;
+  difficultyLevel: 'Beginner' | 'Intermediate' | 'Advanced';
+  status: 'Open' | 'Connected' | 'Closed';
+  createdAt: string; // Must be string to match database.ts mapping
 }
 
 export interface Course {
   id: string;
   courseName: string;
   credits: number;
-  grade: string; // Letter grade: A, B, C, D, F
+  grade: string;
 }
 
 export interface ConnectionRequest {
@@ -97,11 +53,5 @@ export interface ConnectionRequest {
   requesterId: string;
   requesteeId: string;
   status: 'Pending' | 'Accepted' | 'Rejected';
-  createdAt: Date;
+  createdAt: string; // Changed to string
 }
-
-
-
-
-
-
