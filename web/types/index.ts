@@ -6,6 +6,51 @@ export interface Student {
   createdAt: Date;
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+export interface Faculty {
+  id: string;
+  name: string;
+  department: string;
+  officeHours: string;
+  email: string;
+  campus: string; // ADD THIS LINE
+  createdAt: Date;
+}
+
+export interface FacultyReview {
+  id: string;
+  facultyId: string;
+  studentId: string;
+  studentName: string;
+  rating: number; 
+  comment: string;
+  createdAt: Date;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 export interface HelpRequest {
   id: string;
   studentId: string;
@@ -55,21 +100,5 @@ export interface ConnectionRequest {
 }
 
 
-export interface Faculty {
-  id: string;
-  name: string;
-  department: string;
-  officeHours: string; // Matches your interface
-  email: string;
-  createdAt: Date;
-}
 
-export interface FacultyReview {
-  id: string;
-  facultyId: string; // Changed to match your provided interface
-  studentId: string;
-  studentName: string;
-  rating: number; // 1-5
-  comment: string;
-  createdAt: Date;
-}
+
