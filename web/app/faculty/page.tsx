@@ -117,7 +117,7 @@ export default function FacultyPage() {
               Faculty Directory
             </h1>
             <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-slate-500">
-              Faculty Information & Student Evaluations
+              Faculty Information & Student Reviews
             </p>
           </header>
 
