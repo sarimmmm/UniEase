@@ -3,10 +3,12 @@
 import { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import LoginModal from '@/components/LoginModal';
-import { supabase } from '@/lib/supabase';
+// Import your new database service functions
+import { fetchFaculty, fetchFacultyReviews } from '@/lib/database'; 
 import { Faculty, FacultyReview } from '@/types';
 import { Search, Star, Clock, Mail, GraduationCap, Building2, ChevronDown, ChevronUp, MessageSquare, MapPin } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/lib/supabase'; // Still needed for the specific 'insert' action
 
 export default function FacultyPage() {
   const { user } = useAuth();
@@ -16,43 +18,35 @@ export default function FacultyPage() {
   const [allReviews, setAllReviews] = useState<FacultyReview[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState<string>('all');
-  const [selectedCampus, setSelectedCampus] = useState<string>('all'); // NEW: Campus State
+  const [selectedCampus, setSelectedCampus] = useState<string>('all');
   const [selectedFacultyId, setSelectedFacultyId] = useState<string | null>(null);
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [reviewForm, setReviewForm] = useState({ rating: 5, comment: '' });
 
+  // Use the centralized services to load data
   useEffect(() => {
     async function loadData() {
       setLoading(true);
-      const { data: facultyData } = await supabase.from('faculty').select('*').order('name');
-      const { data: reviewData } = await supabase.from('faculty_reviews').select('*');
-      
-      if (facultyData) {
-        const formattedFaculty = facultyData.map(f => ({
-          ...f,
-          officeHours: f.office_hours,
-          campus: f.campus // Ensure your DB has a 'campus' column
-        }));
-        setFacultyList(formattedFaculty);
+      try {
+        const [facultyData, reviewData] = await Promise.all([
+          fetchFaculty(),
+          fetchFacultyReviews()
+        ]);
+        
+        setFacultyList(facultyData);
+        setAllReviews(reviewData);
+      } catch (error) {
+        console.error("Failed to load directory data:", error);
+      } finally {
+        setLoading(false);
       }
-      
-      if (reviewData) {
-        const formattedReviews = reviewData.map(r => ({
-          ...r,
-          facultyId: r.faculty_id,
-          studentId: r.student_id,
-          studentName: r.student_name
-        }));
-        setAllReviews(formattedReviews);
-      }
-      setLoading(false);
     }
     loadData();
   }, []);
 
-  // Filter Logic: Search + Department + Campus
+  // Filter Logic remains the same
   const filteredFaculty = facultyList.filter((faculty) => {
     const matchesSearch = faculty.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesDept = selectedDepartment === 'all' || faculty.department === selectedDepartment;
@@ -74,7 +68,8 @@ export default function FacultyPage() {
   const getAvgRating = (fId: string) => {
     const fReviews = getFacultyReviews(fId);
     if (fReviews.length === 0) return 0;
-    return (fReviews.reduce((acc, r) => acc + r.rating, 0) / fReviews.length).toFixed(1);
+    const sum = fReviews.reduce((acc, r) => acc + r.rating, 0);
+    return (sum / fReviews.length).toFixed(1);
   };
 
   const handleToggle = (id: string) => {
@@ -96,7 +91,12 @@ export default function FacultyPage() {
 
     const { data } = await supabase.from('faculty_reviews').insert([newReview]).select();
     if (data) {
-      const formatted = { ...data[0], facultyId: data[0].faculty_id, studentName: data[0].student_name };
+      // Re-map the response to match frontend CamelCase types
+      const formatted = { 
+        ...data[0], 
+        facultyId: data[0].faculty_id, 
+        studentName: data[0].student_name 
+      };
       setAllReviews([...allReviews, formatted]);
       setReviewForm({ rating: 5, comment: '' });
       setShowReviewForm(false);
@@ -110,7 +110,7 @@ export default function FacultyPage() {
         <div className="space-y-6">
           <header>
             <h1 className="text-3xl font-bold text-[#1e3a8a]">Faculty Directory</h1>
-            <p className="text-gray-600">Search and review faculty members across all FAST campuses</p>
+            <p className="text-gray-600">Dynamic University Directory - Synchronized with Supabase</p>
           </header>
 
           {/* SEARCH & FILTERS SECTION */}
@@ -120,14 +120,13 @@ export default function FacultyPage() {
               <input 
                 type="text" 
                 placeholder="Search faculty by name..." 
-                className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#1e3a8a] outline-none transition-all"
+                className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#1e3a8a] outline-none"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Department Dropdown */}
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-bold text-gray-500 uppercase flex items-center gap-1">
                   <Building2 className="w-3 h-3" /> Department
@@ -142,7 +141,6 @@ export default function FacultyPage() {
                 </select>
               </div>
 
-              {/* Campus Dropdown */}
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-bold text-gray-500 uppercase flex items-center gap-1">
                   <MapPin className="w-3 h-3" /> Campus
@@ -162,10 +160,10 @@ export default function FacultyPage() {
           {/* List Section */}
           <div className="space-y-4">
             {loading ? (
-              <div className="text-center py-12 text-gray-400 italic">Syncing with Supabase...</div>
+              <div className="text-center py-12 text-gray-400 italic">Connecting to University Database...</div>
             ) : filteredFaculty.length === 0 ? (
               <div className="text-center py-12 bg-white rounded-xl border border-dashed border-gray-200 text-gray-400">
-                No faculty found matching your search criteria.
+                No faculty found matching your criteria.
               </div>
             ) : filteredFaculty.map((faculty) => {
               const expanded = selectedFacultyId === faculty.id;
@@ -174,7 +172,6 @@ export default function FacultyPage() {
 
               return (
                 <div key={faculty.id} className={`bg-white border rounded-xl overflow-hidden transition-all duration-300 ${expanded ? 'border-[#1e3a8a] shadow-md ring-1 ring-[#1e3a8a]/5' : 'border-gray-200 shadow-sm hover:border-gray-300'}`}>
-                  {/* Card Front */}
                   <div className="p-6 cursor-pointer" onClick={() => handleToggle(faculty.id)}>
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                       <div className="flex items-center gap-4">
@@ -205,7 +202,6 @@ export default function FacultyPage() {
                     </div>
                   </div>
 
-                  {/* Expandable Content */}
                   {expanded && (
                     <div className="bg-gray-50/50 border-t border-gray-100 p-6 animate-in slide-in-from-top duration-300">
                       <div className="flex justify-between items-center mb-6">
@@ -229,7 +225,7 @@ export default function FacultyPage() {
 
                       <div className="space-y-4">
                         {reviews.length === 0 ? (
-                          <p className="text-center text-gray-400 text-sm italic">No student reviews yet.</p>
+                          <p className="text-center text-gray-400 text-sm italic">No reviews yet for {faculty.name}.</p>
                         ) : (
                           reviews.map((r) => (
                             <div key={r.id} className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm">
@@ -252,7 +248,7 @@ export default function FacultyPage() {
           </div>
         </div>
       </div>
-      <LoginModal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)} title="Faculty Review" message="Please log in with your university account to review faculty." />
+      <LoginModal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)} title="Faculty Review" message="Please sign in with your student account to share feedback." />
     </div>
   );
 }
