@@ -76,8 +76,12 @@ export default function FacultyPage() {
     e.preventDefault();
     if (!isAuthenticated) return setShowLoginModal(true);
 
+    // FIX: Retrieve faculty name locally to satisfy the database NOT-NULL constraint
+    const currentFaculty = facultyList.find(f => f.id === facultyId);
+
     const result = await addFacultyReview({
       facultyId: facultyId,
+      facultyName: currentFaculty?.name || 'Faculty Member', // Added facultyName
       studentId: user.id,
       studentName: user.email?.split('@')[0] || 'Student',
       rating: reviewForm.rating,
@@ -85,7 +89,6 @@ export default function FacultyPage() {
     });
 
     if (result.success) {
-      // Optimistically update the UI instead of a full reload
       const newLocalReview: FacultyReview = {
         id: Math.random().toString(),
         facultyId: facultyId,
@@ -113,7 +116,6 @@ export default function FacultyPage() {
             <p className="text-gray-600">Connect with your teachers and share feedback.</p>
           </header>
 
-          {/* SEARCH & FILTERS SECTION */}
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 space-y-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -127,44 +129,29 @@ export default function FacultyPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-gray-500 uppercase flex items-center gap-1">
-                  <Building2 className="w-3 h-3" /> Department
-                </label>
-                <select 
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg outline-none bg-gray-50 text-sm"
-                  onChange={(e) => setSelectedDepartment(e.target.value)}
-                  value={selectedDepartment}
-                >
-                  <option value="all">All Departments</option>
-                  {departments.map(d => <option key={d} value={d}>{d}</option>)}
-                </select>
-              </div>
+              <select 
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-lg outline-none bg-gray-50 text-sm"
+                onChange={(e) => setSelectedDepartment(e.target.value)}
+                value={selectedDepartment}
+              >
+                <option value="all">All Departments</option>
+                {departments.map(d => <option key={d} value={d}>{d}</option>)}
+              </select>
 
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-gray-500 uppercase flex items-center gap-1">
-                  <MapPin className="w-3 h-3" /> Campus
-                </label>
-                <select 
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg outline-none bg-gray-50 text-sm"
-                  onChange={(e) => setSelectedCampus(e.target.value)}
-                  value={selectedCampus}
-                >
-                  <option value="all">All Campuses</option>
-                  {campuses.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                </select>
-              </div>
+              <select 
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-lg outline-none bg-gray-50 text-sm"
+                onChange={(e) => setSelectedCampus(e.target.value)}
+                value={selectedCampus}
+              >
+                <option value="all">All Campuses</option>
+                {campuses.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
             </div>
           </div>
 
-          {/* List Section */}
           <div className="space-y-4">
             {loading ? (
               <div className="text-center py-12 text-gray-400 italic">Connecting to University Database...</div>
-            ) : filteredFaculty.length === 0 ? (
-              <div className="text-center py-12 bg-white rounded-xl border border-dashed border-gray-200 text-gray-400">
-                No faculty found matching your criteria.
-              </div>
             ) : filteredFaculty.map((faculty) => {
               const expanded = selectedFacultyId === faculty.id;
               const reviews = getFacultyReviews(faculty.id);
@@ -213,12 +200,10 @@ export default function FacultyPage() {
 
                       {showReviewForm && (
                         <form onSubmit={e => handleSubmitReview(e, faculty.id)} onClick={e => e.stopPropagation()} className="mb-6 p-6 bg-white border rounded-xl shadow-sm space-y-4">
-                          {/* RESPECTFUL NOTE */}
                           <div className="bg-blue-50 border-l-4 border-[#1e3a8a] p-4 rounded-r-lg flex items-start gap-3">
                             <ShieldCheck className="w-5 h-5 text-[#1e3a8a] mt-0.5" />
-                            <p className="text-sm text-[#1e3a8a] font-medium leading-relaxed">
-                              <strong>Community Guideline:</strong> Please keep your feedback respectful and constructive. 
-                              Helpful reviews empower the UniEase community while maintaining academic professionalism.
+                            <p className="text-sm text-[#1e3a8a] font-medium leading-relaxed italic">
+                              "Note: Please keep your review constructive and respectful. Professional feedback helps the entire UniEase community make better decisions."
                             </p>
                           </div>
 
@@ -227,7 +212,7 @@ export default function FacultyPage() {
                               <Star key={s} className={`w-6 h-6 cursor-pointer transition-colors ${s <= reviewForm.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-200'}`} onClick={() => setReviewForm({ ...reviewForm, rating: s })} />
                             ))}
                           </div>
-                          <textarea className="w-full p-4 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-[#1e3a8a]/20 focus:border-[#1e3a8a]" placeholder="What was your experience with this teacher? (e.g. grading style, teaching method...)" rows={3} value={reviewForm.comment} onChange={e => setReviewForm({ ...reviewForm, comment: e.target.value })} required />
+                          <textarea className="w-full p-4 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-[#1e3a8a]/20" placeholder="Share your experience..." rows={3} value={reviewForm.comment} onChange={e => setReviewForm({ ...reviewForm, comment: e.target.value })} required />
                           <button type="submit" className="bg-[#1e3a8a] hover:bg-blue-800 text-white px-8 py-2.5 rounded-lg font-bold text-sm transition-colors">Post Review</button>
                         </form>
                       )}
