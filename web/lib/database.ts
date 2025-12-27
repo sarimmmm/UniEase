@@ -1,6 +1,37 @@
 import { supabase } from './supabase';
 import { HelpRequest, Faculty, FacultyReview } from '@/types';
 
+
+
+
+
+
+
+
+
+
+// Example of a global fetch check
+if (error?.message?.includes('401') || error?.status === 401) {
+  // Clear the stale session and redirect to login
+  await supabase.auth.signOut();
+  window.location.href = '/login?reason=expired';
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // --- 1. FACULTY DIRECTORY & REVIEWS ---
 
 export async function fetchFaculty(): Promise<Faculty[]> {
@@ -240,3 +271,4 @@ export async function deleteStudentGrade(
     return { success: false, error: error.message };
   }
 }
+
