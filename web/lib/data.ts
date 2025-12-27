@@ -5,11 +5,12 @@ import { HelpRequest, Faculty, FacultyReview } from '@/types';
 export const subjects = [
   'Calculus',
   'Programming Fundamentals',
-  'Physics',
-  'Chemistry',
-  'Biology',
-  'Statistics',
-  'Linear Algebra',
+  'Applied Physics',
+  'Object Oriented Programming',
+  'Multivariable Calculus',
+  'Digital Logic Design',
+  'Expository Writings',
+  'Civics and Community Engagement',
   'Data Structures',
   'Computer Networks',
   'Database Systems',
@@ -116,3 +117,4 @@ export const gradePoints: Record<string, number> = {
   'D-': 0.7,
   'F': 0.0,
 };
+
