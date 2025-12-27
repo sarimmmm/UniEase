@@ -51,6 +51,10 @@ export async function fetchFacultyReviews(): Promise<FacultyReview[]> {
   }
 }
 
+/**
+ * addFacultyReview
+ * Saves teacher reviews to the database.
+ */
 export async function addFacultyReview(review: {
   facultyId: string;
   studentId: string;
@@ -62,7 +66,7 @@ export async function addFacultyReview(review: {
     const { error } = await supabase.from('faculty_reviews').insert([
       {
         faculty_id: review.facultyId,
-        student_id: review.studentId,
+        student_id: review.studentId, // This must be the UUID from useAuth()
         student_name: review.studentName,
         rating: review.rating,
         comment: review.comment,
@@ -105,7 +109,15 @@ export async function fetchStudyRequests(): Promise<HelpRequest[]> {
   }
 }
 
-export async function createStudyRequest(request: any): Promise<{ success: boolean; error?: string }> {
+export async function createStudyRequest(request: {
+  studentId: string;
+  studentName: string;
+  studentEmail: string;
+  subject: string;
+  topic: string;
+  description: string;
+  difficultyLevel: 'Beginner' | 'Intermediate' | 'Advanced';
+}): Promise<{ success: boolean; error?: string }> {
   try {
     const { error } = await supabase.from('study_requests').insert([
       {
@@ -160,7 +172,10 @@ export async function fetchStudentGrades(studentId: string): Promise<any[]> {
   }
 }
 
-export async function saveStudentGrade(studentId: string, course: any): Promise<{ success: boolean; error?: string }> {
+export async function saveStudentGrade(
+  studentId: string, 
+  course: { courseName: string; credits: number; grade: string; breakdown?: any; percentage?: number }
+): Promise<{ success: boolean; error?: string }> {
   try {
     const { error } = await supabase.from('student_grades').insert([
       {
@@ -169,9 +184,10 @@ export async function saveStudentGrade(studentId: string, course: any): Promise<
         credits: course.credits,
         grade: course.grade,
         breakdown: course.breakdown || null,
-        percentage: course.percentage || null,
+        percentage: course.percentage !== undefined ? course.percentage : null,
       }
     ]);
+
     if (error) return { success: false, error: error.message };
     return { success: true };
   } catch (error: any) {
@@ -179,7 +195,11 @@ export async function saveStudentGrade(studentId: string, course: any): Promise<
   }
 }
 
-export async function updateStudentGrade(studentId: string, gradeId: string, course: any): Promise<{ success: boolean; error?: string }> {
+export async function updateStudentGrade(
+  studentId: string,
+  gradeId: string,
+  course: { courseName: string; credits: number; grade: string; breakdown?: any; percentage?: number }
+): Promise<{ success: boolean; error?: string }> {
   try {
     const { error } = await supabase
       .from('student_grades')
@@ -187,7 +207,8 @@ export async function updateStudentGrade(studentId: string, gradeId: string, cou
         course_name: course.courseName,
         credits: course.credits,
         grade: course.grade,
-        percentage: course.percentage || null,
+        breakdown: course.breakdown || null,
+        percentage: course.percentage !== undefined ? course.percentage : null,
         updated_at: new Date().toISOString(),
       })
       .eq('id', gradeId)
@@ -200,7 +221,10 @@ export async function updateStudentGrade(studentId: string, gradeId: string, cou
   }
 }
 
-export async function deleteStudentGrade(studentId: string, gradeId: string): Promise<{ success: boolean; error?: string }> {
+export async function deleteStudentGrade(
+  studentId: string,
+  gradeId: string
+): Promise<{ success: boolean; error?: string }> {
   try {
     const { error } = await supabase
       .from('student_grades')
