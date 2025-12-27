@@ -5,8 +5,7 @@ import Navbar from '@/components/Navbar';
 import LoginModal from '@/components/LoginModal';
 import { fetchFaculty, fetchFacultyReviews, addFacultyReview } from '@/lib/database'; 
 import { Faculty, FacultyReview } from '@/types';
-import { Search, Star, Clock, Mail, ChevronDown, ChevronUp, MessageSquare, ShieldCheck, UserSecret } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
+import { Search, Star, Clock, Mail, ChevronDown, ChevronUp, MessageSquare, ShieldCheck, User } from 'lucide-react';import { useAuth } from '@/contexts/AuthContext';
 
 export default function FacultyPage() {
   const { user } = useAuth();
