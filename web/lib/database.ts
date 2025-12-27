@@ -3,6 +3,7 @@ import { HelpRequest, Faculty, FacultyReview } from '@/types';
 
 /**
  * HELPER: handleAuthError
+ * Redirects the user to login if the university session has expired.
  */
 async function handleAuthError(error: any) {
   if (error?.message?.includes('401') || error?.status === 401) {
@@ -117,6 +118,7 @@ export async function fetchStudyRequests(): Promise<HelpRequest[]> {
       throw error;
     }
 
+    // Mapping: Removed difficultyLevel to match updated Types
     return data?.map((request) => ({
       id: request.id,
       studentId: request.student_id,
@@ -151,7 +153,7 @@ export async function createStudyRequest(request: {
         subject: request.subject,
         topic: request.topic,
         description: request.description,
-        status: 'Open',
+        status: 'Open', // No longer sending difficulty_level
       },
     ]);
 
