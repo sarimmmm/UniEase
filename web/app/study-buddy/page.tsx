@@ -125,7 +125,7 @@ export default function StudyBuddyPage() {
         <div className="space-y-6">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">Study Buddy Marketplace</h1>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">Study Buddy</h1>
               <p className="text-gray-600">Find or offer study help with your peers</p>
             </div>
             <button
