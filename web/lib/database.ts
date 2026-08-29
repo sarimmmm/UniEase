@@ -25,6 +25,7 @@ export async function fetchFaculty(): Promise<Faculty[]> {
     const { data, error } = await supabase
       .from('faculty')
       .select('*')
+      .order('display_order', { ascending: true, nullsFirst: false })
       .order('name', { ascending: true });
 
     if (error) {
