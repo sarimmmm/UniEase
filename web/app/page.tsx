@@ -104,9 +104,6 @@ export default function LandingPage() {
     <p className="text-gray-400">
       &copy; 2025 UniEase. All rights reserved.
     </p>
-    <p className="text-gray-500 text-sm mt-2">
-       Developed by <span className="text-blue-400 font-medium">Sarim</span>
-    </p>
   </div>
 </footer>
     </div>

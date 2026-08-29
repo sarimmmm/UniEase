@@ -171,7 +171,24 @@ export default function TimetablePage() {
         {/* PREVIEW / CONFIDENCE STEP */}
         {!loading && sections && (
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 space-y-4">
-            <h2 className="text-lg font-bold text-gray-900">2. Select sections</h2>
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-bold text-gray-900">2. Select sections</h2>
+              {readableSections.length > 0 && (
+                <button
+                  onClick={() => {
+                    setShowResults(false);
+                    setSelected(
+                      selected.size === readableSections.length
+                        ? new Set()
+                        : new Set(readableSections.map((s) => s.name!)),
+                    );
+                  }}
+                  className="text-sm font-semibold text-[#1e3a8a] hover:underline"
+                >
+                  {selected.size === readableSections.length ? 'Clear all' : 'Select all'}
+                </button>
+              )}
+            </div>
             {docWarnings.length > 0 && (
               <div className="bg-amber-50 border border-amber-200 text-amber-800 text-sm rounded-lg p-3">
                 {docWarnings.join('; ')}
