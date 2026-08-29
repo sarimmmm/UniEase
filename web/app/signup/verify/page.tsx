@@ -33,14 +33,18 @@ function VerifyForm() {
     }
 
     setLoading(true);
-    const { error } = await verifySignupOtp(email, code.trim());
-    setLoading(false);
-
-    if (error) {
-      setError(error.message || "That code didn't work. Check it and try again.");
-      return;
+    try {
+      const { error } = await verifySignupOtp(email, code.trim());
+      if (error) {
+        setError(error.message || "That code didn't work. Check it and try again.");
+        return;
+      }
+      router.push('/');
+    } catch {
+      setError('Something went wrong. Please try again.');
+    } finally {
+      setLoading(false);
     }
-    router.push('/');
   };
 
   const handleResend = async () => {
@@ -48,12 +52,17 @@ function VerifyForm() {
     setResending(true);
     setError('');
     setInfo('');
-    const { error } = await resendSignupOtp(email);
-    setResending(false);
-    if (error) {
-      setError(error.message || "Couldn't resend the code. Try again in a moment.");
-    } else {
-      setInfo('New code sent — check your email.');
+    try {
+      const { error } = await resendSignupOtp(email);
+      if (error) {
+        setError(error.message || "Couldn't resend the code. Try again in a moment.");
+      } else {
+        setInfo('New code sent — check your email.');
+      }
+    } catch {
+      setError('Something went wrong. Please try again.');
+    } finally {
+      setResending(false);
     }
   };
 

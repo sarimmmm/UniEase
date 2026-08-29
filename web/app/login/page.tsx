@@ -39,13 +39,17 @@ export default function LoginPage() {
       return;
     }
 
-    const { error } = await signIn(email, password);
-    setLoading(false);
-
-    if (error) {
-      setError(error.message || 'Failed to sign in. Please check your credentials.');
-    } else {
-      router.push('/');
+    try {
+      const { error } = await signIn(email, password);
+      if (error) {
+        setError(error.message || 'Failed to sign in. Please check your credentials.');
+      } else {
+        router.push('/');
+      }
+    } catch {
+      setError('Something went wrong. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 

@@ -51,15 +51,19 @@ export default function SignupPage() {
       return;
     }
 
-    const { error, alreadyRegistered } = await signUp(email, password, name);
-    setLoading(false);
-
-    if (error) {
-      setError(error.message || 'Failed to create account. Please try again.');
-    } else if (alreadyRegistered) {
-      setError('An account with this email already exists. Try signing in instead.');
-    } else {
-      router.push(`/signup/verify?email=${encodeURIComponent(email)}`);
+    try {
+      const { error, alreadyRegistered } = await signUp(email, password, name);
+      if (error) {
+        setError(error.message || 'Failed to create account. Please try again.');
+      } else if (alreadyRegistered) {
+        setError('An account with this email already exists. Try signing in instead.');
+      } else {
+        router.push(`/signup/verify?email=${encodeURIComponent(email)}`);
+      }
+    } catch {
+      setError('Something went wrong. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 

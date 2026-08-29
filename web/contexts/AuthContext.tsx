@@ -68,15 +68,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
     });
 
-    // Listen for auth changes
+    // Listen for auth changes. Supabase invokes this callback synchronously
+    // while holding an internal lock during sign-in/sign-up -- calling
+    // another Supabase method (loadProfile's query) directly inside it can
+    // deadlock the client permanently, since that query waits on the same
+    // lock the callback is blocking. Deferring with setTimeout(...,0) lets
+    // the callback return and release the lock first.
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
-      if (session?.user) await loadProfile(session.user.id);
-      else setProfile(null);
-      setLoading(false);
+      setTimeout(() => {
+        if (session?.user) {
+          loadProfile(session.user.id).finally(() => setLoading(false));
+        } else {
+          setProfile(null);
+          setLoading(false);
+        }
+      }, 0);
     });
 
     return () => subscription.unsubscribe();
