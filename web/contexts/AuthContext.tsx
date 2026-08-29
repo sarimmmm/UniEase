@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import { User, Session } from '@supabase/supabase-js';
+import { User, Session, AuthError } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 
@@ -18,8 +18,10 @@ interface AuthContextType {
   profile: Profile | null;
   isAdmin: boolean;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signUp: (email: string, password: string, name: string) => Promise<{ error: any }>;
+  signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
+  signUp: (email: string, password: string, name: string) => Promise<{ error: AuthError | null; alreadyRegistered?: boolean }>;
+  verifySignupOtp: (email: string, token: string) => Promise<{ error: AuthError | null }>;
+  resendSignupOtp: (email: string) => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
@@ -32,6 +34,8 @@ const AuthContext = createContext<AuthContextType>({
   loading: true,
   signIn: async () => ({ error: null }),
   signUp: async () => ({ error: null }),
+  verifySignupOtp: async () => ({ error: null }),
+  resendSignupOtp: async () => ({ error: null }),
   signOut: async () => {},
   refreshProfile: async () => {},
 });
@@ -87,16 +91,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signUp = async (email: string, password: string, name: string) => {
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: {
           name,
         },
-        emailRedirectTo: typeof window !== 'undefined' ? window.location.origin : undefined,
       },
     });
+    if (error) return { error };
+
+    // Supabase deliberately returns success (no error) when signing up with
+    // an email that already has a confirmed account -- an anti-enumeration
+    // measure, not a bug. No new OTP is sent in that case. The documented
+    // client-side signal is an empty `identities` array on the returned user.
+    if (data.user && data.user.identities?.length === 0) {
+      return { error: null, alreadyRegistered: true };
+    }
+    return { error: null };
+  };
+
+  const verifySignupOtp = async (email: string, token: string) => {
+    const { error } = await supabase.auth.verifyOtp({ email, token, type: 'signup' });
+    return { error };
+  };
+
+  const resendSignupOtp = async (email: string) => {
+    const { error } = await supabase.auth.resend({ type: 'signup', email });
     return { error };
   };
 
@@ -109,7 +131,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const isAdmin = profile?.role === 'admin';
 
   return (
-    <AuthContext.Provider value={{ user, session, profile, isAdmin, loading, signIn, signUp, signOut, refreshProfile }}>
+    <AuthContext.Provider value={{ user, session, profile, isAdmin, loading, signIn, signUp, verifySignupOtp, resendSignupOtp, signOut, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   );
