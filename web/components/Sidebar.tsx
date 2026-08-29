@@ -8,6 +8,7 @@ import {
   GraduationCap,
   Calculator,
   CalendarClock,
+  ShieldCheck,
   BookOpen,
   LogOut,
   Menu,
@@ -16,16 +17,17 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 
 const navItems = [
-  { href: '/study-buddy', label: 'Study Buddy', icon: Users, protected: false },
-  { href: '/faculty', label: 'Faculty Directory', icon: GraduationCap, protected: false },
-  { href: '/gpa-calculator', label: 'GPA Calculator', icon: Calculator, protected: true },
-  { href: '/timetable', label: 'Timetable', icon: CalendarClock, protected: false },
+  { href: '/study-buddy', label: 'Study Buddy', icon: Users, protected: false, adminOnly: false },
+  { href: '/faculty', label: 'Faculty Directory', icon: GraduationCap, protected: false, adminOnly: false },
+  { href: '/gpa-calculator', label: 'GPA Calculator', icon: Calculator, protected: true, adminOnly: false },
+  { href: '/timetable', label: 'Timetable', icon: CalendarClock, protected: false, adminOnly: false },
+  { href: '/admin', label: 'Admin', icon: ShieldCheck, protected: true, adminOnly: true },
 ];
 
 export default function Sidebar() {
   const pathname = usePathname();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const { user, signOut } = useAuth();
+  const { user, isAdmin, signOut } = useAuth();
   const router = useRouter();
 
   const handleLogout = async () => {
@@ -33,7 +35,7 @@ export default function Sidebar() {
     setIsMobileOpen(false);
   };
 
-  const filteredNavItems = navItems.filter((item) => !item.protected || user);
+  const filteredNavItems = navItems.filter((item) => (!item.protected || user) && (!item.adminOnly || isAdmin));
 
   return (
     <>

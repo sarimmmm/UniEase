@@ -3,13 +3,13 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { BookOpen, LogIn, LogOut, User as UserIcon, Home, Calculator, GraduationCap, Users, CalendarClock, Menu, X } from 'lucide-react';
+import { BookOpen, LogIn, LogOut, User as UserIcon, Home, Calculator, GraduationCap, Users, CalendarClock, ShieldCheck, Menu, X } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, signOut, loading } = useAuth();
+  const { user, isAdmin, signOut, loading } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const handleSignOut = async () => {
@@ -24,6 +24,7 @@ export default function Navbar() {
     { name: 'GPA Calculator', href: '/gpa-calculator', icon: Calculator },
     { name: 'Faculty', href: '/faculty', icon: GraduationCap },
     { name: 'Timetable', href: '/timetable', icon: CalendarClock },
+    ...(isAdmin ? [{ name: 'Admin', href: '/admin', icon: ShieldCheck }] : []),
   ];
 
   return (

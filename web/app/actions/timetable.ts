@@ -3,20 +3,29 @@
 import { parseTimetablePdf, ParsedSection } from '@/lib/timetable-parser';
 import { OFFICIAL_TIMETABLE_URL } from '@/lib/timetable-constants';
 
-export type TimetableActionResult = { sections: ParsedSection[]; warnings: string[] } | { error: string };
+export type TimetableActionResult =
+  | { sections: ParsedSection[]; warnings: string[]; url?: string }
+  | { error: string };
 
 function errorMessage(err: unknown, fallback: string): string {
   return err instanceof Error ? err.message : fallback;
 }
 
+// The bucket is public and sits behind a CDN, so a replaced file at the
+// same fixed path can otherwise keep serving a stale cached copy. A
+// cache-busting query param forces both this server-side fetch and the
+// client's iframe (which reuses this same `url`) to always get the current
+// object rather than a cached one.
 export async function loadOfficialTimetable(): Promise<TimetableActionResult> {
+  const versionedUrl = `${OFFICIAL_TIMETABLE_URL}?v=${Date.now()}`;
   try {
-    const res = await fetch(OFFICIAL_TIMETABLE_URL);
+    const res = await fetch(versionedUrl, { cache: 'no-store' });
     if (!res.ok) {
       return { error: `Could not load the official timetable (HTTP ${res.status}).` };
     }
     const buf = await res.arrayBuffer();
-    return await parseTimetablePdf(buf);
+    const result = await parseTimetablePdf(buf);
+    return { ...result, url: versionedUrl };
   } catch (err: unknown) {
     return { error: errorMessage(err, 'Failed to load the official timetable.') };
   }

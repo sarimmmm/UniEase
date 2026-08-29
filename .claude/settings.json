@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__supabase__apply_migration",
+      "Bash(curl -s -w '\\\\nHTTP %{http_code}\\\\n' https://nycemvsujovktcjwhzys.supabase.co/rest/v1/study_requests?select=* -H 'apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im55Y2VtdnN1am92a3RjandoenlzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgwMDA5OTksImV4cCI6MjEwMzU3Njk5OX0.eRudT13ohhamo4623iBE0M_39PHTY4kZUpL46xj2vIY' -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im55Y2VtdnN1am92a3RjandoenlzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgwMDA5OTksImV4cCI6MjEwMzU3Njk5OX0.eRudT13ohhamo4623iBE0M_39PHTY4kZUpL46xj2vIY')",
+      "Bash(curl -s -w '\\\\nHTTP %{http_code}\\\\n' -X POST https://nycemvsujovktcjwhzys.supabase.co/rest/v1/faculty -H 'apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im55Y2VtdnN1am92a3RjandoenlzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgwMDA5OTksImV4cCI6MjEwMzU3Njk5OX0.eRudT13ohhamo4623iBE0M_39PHTY4kZUpL46xj2vIY' -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im55Y2VtdnN1am92a3RjandoenlzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgwMDA5OTksImV4cCI6MjEwMzU3Njk5OX0.eRudT13ohhamo4623iBE0M_39PHTY4kZUpL46xj2vIY' -H 'Content-Type: application/json' -d '{\"name\":\"Fake Prof\",\"department\":\"Hacking\",\"office_hours\":\"never\",\"email\":\"x@x.com\",\"campus\":\"Multan\"}')"
+    ]
+  }
+}

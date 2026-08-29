@@ -25,6 +25,7 @@ export default function TimetablePage() {
   const [dayFilter, setDayFilter] = useState<Day | ''>('');
   const [showResults, setShowResults] = useState(false);
   const [showPdf, setShowPdf] = useState(false);
+  const [pdfUrl, setPdfUrl] = useState<string>(OFFICIAL_TIMETABLE_URL);
 
   const selectedSections = useMemo(
     () => (sections ?? []).filter((s) => s.name && selected.has(s.name)),
@@ -52,6 +53,7 @@ export default function TimetablePage() {
     setSections(result.sections);
     setDocWarnings(result.warnings);
     setSelected(new Set());
+    if (result.url) setPdfUrl(result.url);
   }
 
   async function handleUpload(file: File) {
@@ -149,7 +151,7 @@ export default function TimetablePage() {
               {showPdf && (
                 <div className="mt-3 rounded-xl overflow-hidden border border-gray-200">
                   <iframe
-                    src={OFFICIAL_TIMETABLE_URL}
+                    src={pdfUrl}
                     title="Official FAST-NUCES Multan Campus timetable"
                     className="w-full h-[600px]"
                   />
@@ -169,7 +171,7 @@ export default function TimetablePage() {
         {/* PREVIEW / CONFIDENCE STEP */}
         {!loading && sections && (
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 space-y-4">
-            <h2 className="text-lg font-bold text-gray-900">2. Parsed sections</h2>
+            <h2 className="text-lg font-bold text-gray-900">2. Select sections</h2>
             {docWarnings.length > 0 && (
               <div className="bg-amber-50 border border-amber-200 text-amber-800 text-sm rounded-lg p-3">
                 {docWarnings.join('; ')}

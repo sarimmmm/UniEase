@@ -1,5 +1,6 @@
 import { supabase } from './supabase';
 import { HelpRequest, Faculty, FacultyReview } from '@/types';
+import { Profile } from '@/contexts/AuthContext';
 
 /**
  * HELPER: handleAuthError
@@ -271,6 +272,158 @@ export async function deleteStudentGrade(
 
     if (error) {
       await handleAuthError(error);
+      return { success: false, error: error.message };
+    }
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
+// --- 4. ADMIN: FACULTY MANAGEMENT ---
+
+export async function createFaculty(faculty: {
+  name: string;
+  department: string;
+  officeHours: string;
+  email: string;
+  campus: string;
+}): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { error } = await supabase.from('faculty').insert([
+      {
+        name: faculty.name,
+        department: faculty.department,
+        office_hours: faculty.officeHours,
+        email: faculty.email,
+        campus: faculty.campus,
+      },
+    ]);
+    if (error) {
+      await handleAuthError(error);
+      return { success: false, error: error.message };
+    }
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
+export async function updateFaculty(
+  id: string,
+  faculty: { name: string; department: string; officeHours: string; email: string; campus: string }
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { error } = await supabase
+      .from('faculty')
+      .update({
+        name: faculty.name,
+        department: faculty.department,
+        office_hours: faculty.officeHours,
+        email: faculty.email,
+        campus: faculty.campus,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', id);
+    if (error) {
+      await handleAuthError(error);
+      return { success: false, error: error.message };
+    }
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
+export async function deleteFaculty(id: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { error } = await supabase.from('faculty').delete().eq('id', id);
+    if (error) {
+      await handleAuthError(error);
+      return { success: false, error: error.message };
+    }
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
+export async function deleteFacultyReview(id: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { error } = await supabase.from('faculty_reviews').delete().eq('id', id);
+    if (error) {
+      await handleAuthError(error);
+      return { success: false, error: error.message };
+    }
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
+// --- 5. ADMIN: STUDY REQUEST MODERATION ---
+
+export async function deleteStudyRequestAdmin(id: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { error } = await supabase.from('study_requests').delete().eq('id', id);
+    if (error) {
+      await handleAuthError(error);
+      return { success: false, error: error.message };
+    }
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
+export async function updateStudyRequestStatus(
+  id: string,
+  status: 'Open' | 'Connected' | 'Closed'
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { error } = await supabase
+      .from('study_requests')
+      .update({ status, updated_at: new Date().toISOString() })
+      .eq('id', id);
+    if (error) {
+      await handleAuthError(error);
+      return { success: false, error: error.message };
+    }
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
+// --- 6. ADMIN: USER / ROLE MANAGEMENT ---
+
+export async function fetchAllProfiles(): Promise<Profile[]> {
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, email, name, role, created_at')
+      .order('created_at', { ascending: false });
+    if (error) {
+      await handleAuthError(error);
+      throw error;
+    }
+    return data ?? [];
+  } catch (error) {
+    console.error('Error fetching profiles:', error);
+    return [];
+  }
+}
+
+export async function setUserRole(
+  targetUserId: string,
+  newRole: 'student' | 'admin'
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { error } = await supabase.rpc('admin_set_role', {
+      target_user: targetUserId,
+      new_role: newRole,
+    });
+    if (error) {
       return { success: false, error: error.message };
     }
     return { success: true };
