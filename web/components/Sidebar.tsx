@@ -7,6 +7,7 @@ import {
   Users,
   GraduationCap,
   Calculator,
+  CalendarClock,
   BookOpen,
   LogOut,
   Menu,
@@ -18,6 +19,7 @@ const navItems = [
   { href: '/study-buddy', label: 'Study Buddy', icon: Users, protected: false },
   { href: '/faculty', label: 'Faculty Directory', icon: GraduationCap, protected: false },
   { href: '/gpa-calculator', label: 'GPA Calculator', icon: Calculator, protected: true },
+  { href: '/timetable', label: 'Timetable', icon: CalendarClock, protected: false },
 ];
 
 export default function Sidebar() {

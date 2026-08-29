@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" role="img" aria-label="UniEase">
+  <title>UniEase</title>
+  <rect width="32" height="32" rx="7" fill="#1e3a8a"/>
+  <path d="M16 10.5
+           C13.3 9.3 9.6 9.2 7.4 10.1
+           C6.6 10.4 6 11.1 6 12
+           L6 19.6
+           C6 20.4 6.6 21 7.4 21
+           C9.6 20.9 13.3 21.6 16 22.8
+           Z"
+        fill="#ffffff"/>
+  <path d="M16 10.5
+           C18.7 9.3 22.4 9.2 24.6 10.1
+           C25.4 10.4 26 11.1 26 12
+           L26 19.6
+           C26 20.4 25.4 21 24.6 21
+           C22.4 20.9 18.7 21.6 16 22.8
+           Z"
+        fill="#ffffff"/>
+  <rect x="15.4" y="10.2" width="1.2" height="12.4" fill="#1e3a8a"/>
+</svg>

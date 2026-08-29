@@ -2,9 +2,11 @@
 
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
+import { useAuth } from '@/contexts/AuthContext';
 import { Users, GraduationCap, Calculator, ArrowRight } from 'lucide-react';
 
 export default function LandingPage() {
+  const { user } = useAuth();
 
   return (
     <div className="min-h-screen bg-white">
@@ -79,20 +81,22 @@ export default function LandingPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-gray-50">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Ready to get started?</h2>
-          <p className="text-xl text-gray-600 mb-8">
-            Join UniEase today and connect with your university community.
-          </p>
-          <Link
-            href="/signup"
-            className="inline-block px-8 py-3 bg-[#1e3a8a] text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors"
-          >
-            Create Account
-          </Link>
-        </div>
-      </section>
+      {!user && (
+        <section className="py-20 bg-gray-50">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Ready to get started?</h2>
+            <p className="text-xl text-gray-600 mb-8">
+              Join UniEase today and connect with your university community.
+            </p>
+            <Link
+              href="/signup"
+              className="inline-block px-8 py-3 bg-[#1e3a8a] text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+            >
+              Create Account
+            </Link>
+          </div>
+        </section>
+      )}
 
       {/* Footer */}
     <footer className="bg-gray-900 text-white py-8 mt-auto">

@@ -174,7 +174,7 @@ export async function fetchStudentGrades(studentId: string): Promise<any[]> {
     const { data, error } = await supabase
       .from('student_grades')
       .select('*')
-      .eq('user_id', studentId)
+      .eq('student_id', studentId)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -210,7 +210,7 @@ export async function saveStudentGrade(
   try {
     const { error } = await supabase.from('student_grades').insert([
       {
-        user_id: studentId,
+        student_id: studentId,
         course_name: course.courseName,
         credits: course.credits,
         grade: course.grade,
@@ -246,7 +246,7 @@ export async function updateStudentGrade(
         updated_at: new Date().toISOString(),
       })
       .eq('id', gradeId)
-      .eq('user_id', studentId);
+      .eq('student_id', studentId);
 
     if (error) {
       await handleAuthError(error);
@@ -267,7 +267,7 @@ export async function deleteStudentGrade(
       .from('student_grades')
       .delete()
       .eq('id', gradeId)
-      .eq('user_id', studentId);
+      .eq('student_id', studentId);
 
     if (error) {
       await handleAuthError(error);

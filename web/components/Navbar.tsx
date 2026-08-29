@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { BookOpen, LogIn, LogOut, User as UserIcon, Home, Calculator, GraduationCap, Users, Menu, X } from 'lucide-react';
+import { BookOpen, LogIn, LogOut, User as UserIcon, Home, Calculator, GraduationCap, Users, CalendarClock, Menu, X } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function Navbar() {
@@ -23,6 +23,7 @@ export default function Navbar() {
     { name: 'Study Buddy', href: '/study-buddy', icon: Users },
     { name: 'GPA Calculator', href: '/gpa-calculator', icon: Calculator },
     { name: 'Faculty', href: '/faculty', icon: GraduationCap },
+    { name: 'Timetable', href: '/timetable', icon: CalendarClock },
   ];
 
   return (
