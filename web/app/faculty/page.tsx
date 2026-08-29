@@ -48,12 +48,14 @@ export default function FacultyPage() {
     return matchesSearch && matchesDept && matchesCampus;
   });
 
-  const departments = Array.from(new Set(facultyList.map((f) => f.department)));
-  const campuses = [
-    { id: 'mtn', name: 'Multan' },
-    { id: 'lhr', name: 'Lahore' },
-    { id: 'isb', name: 'Islamabad' },
-  ];
+  const campuses = Array.from(new Set(facultyList.map((f) => f.campus))).sort();
+  const departments = Array.from(
+    new Set(
+      facultyList
+        .filter((f) => selectedCampus === 'all' || f.campus === selectedCampus)
+        .map((f) => f.department)
+    )
+  ).sort();
 
   const getFacultyReviews = (fId: string) => allReviews.filter((r) => r.facultyId === fId);
 
@@ -139,13 +141,13 @@ export default function FacultyPage() {
                 <option value="all">All Departments</option>
                 {departments.map(d => <option key={d} value={d}>{d}</option>)}
               </select>
-              <select 
+              <select
                 className="w-full px-4 py-2.5 border border-gray-200 rounded-lg outline-none bg-gray-50 text-sm"
-                onChange={(e) => setSelectedCampus(e.target.value)}
+                onChange={(e) => { setSelectedCampus(e.target.value); setSelectedDepartment('all'); }}
                 value={selectedCampus}
               >
                 <option value="all">All Campuses</option>
-                {campuses.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
+                {campuses.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
           </div>
