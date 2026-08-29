@@ -8,11 +8,20 @@ import { loadOfficialTimetable, parseUploadedTimetable } from '@/app/actions/tim
 import { computeCommonFreeSlots, formatClockTime, DayFreeResult } from '@/lib/timetable-freeslots';
 import { Day, DAYS, ParsedSection } from '@/lib/timetable-parser/types';
 import { OFFICIAL_TIMETABLE_URL } from '@/lib/timetable-constants';
-import { Upload, School, CheckCircle2, AlertTriangle, Search, CalendarClock, FileText, ChevronDown, ChevronUp } from 'lucide-react';
+import { Upload, School, CheckCircle2, AlertTriangle, Search, CalendarClock, FileText, ChevronDown, ChevronUp, Lightbulb } from 'lucide-react';
 
 const DAY_LABELS: Record<Day, string> = { Mo: 'Monday', Tu: 'Tuesday', We: 'Wednesday', Th: 'Thursday', Fr: 'Friday' };
 
 type Source = 'none' | 'official' | 'upload';
+
+function totalFreeMinutes(results: DayFreeResult[]): number {
+  return results.reduce((sum, r) => sum + (r.incomplete ? 0 : r.slots.reduce((s, sl) => s + sl.minutes, 0)), 0);
+}
+
+interface ExclusionSuggestion {
+  sectionName: string;
+  additionalMinutes: number;
+}
 
 export default function TimetablePage() {
   const { showToast } = useToast();
@@ -38,6 +47,26 @@ export default function TimetablePage() {
   }, [showResults, selectedSections, dayFilter]);
 
   const periods = selectedSections[0]?.periods ?? [];
+
+  // Proactive, not reactive: for every currently selected section, check
+  // whether the OTHER selected sections alone would already have more common
+  // free time than the full set does. If so, that section is the one
+  // constraining the group — surface it as a suggestion up front, rather
+  // than requiring the user to manually deselect sections by trial and error
+  // to discover this themselves.
+  const suggestions: ExclusionSuggestion[] = useMemo(() => {
+    if (!showResults || selectedSections.length < 2) return [];
+    const currentTotal = totalFreeMinutes(results);
+    const out: ExclusionSuggestion[] = [];
+    for (const section of selectedSections) {
+      const without = selectedSections.filter((s) => s !== section);
+      const withoutTotal = totalFreeMinutes(computeCommonFreeSlots(without, dayFilter || undefined));
+      if (withoutTotal > currentTotal) {
+        out.push({ sectionName: section.name!, additionalMinutes: withoutTotal - currentTotal });
+      }
+    }
+    return out.sort((a, b) => b.additionalMinutes - a.additionalMinutes);
+  }, [showResults, selectedSections, dayFilter, results]);
 
   async function handleUseOfficial() {
     setSource('official');
@@ -75,7 +104,6 @@ export default function TimetablePage() {
   }
 
   function toggleSection(name: string) {
-    setShowResults(false);
     setSelected((prev) => {
       const next = new Set(prev);
       if (next.has(name)) next.delete(name);
@@ -176,7 +204,6 @@ export default function TimetablePage() {
               {readableSections.length > 0 && (
                 <button
                   onClick={() => {
-                    setShowResults(false);
                     setSelected(
                       selected.size === readableSections.length
                         ? new Set()
@@ -239,10 +266,7 @@ export default function TimetablePage() {
             <div className="flex flex-col sm:flex-row gap-4">
               <select
                 value={dayFilter}
-                onChange={(e) => {
-                  setDayFilter(e.target.value as Day | '');
-                  setShowResults(false);
-                }}
+                onChange={(e) => setDayFilter(e.target.value as Day | '')}
                 className="w-full sm:w-64 px-4 py-2.5 border border-gray-200 rounded-lg outline-none bg-gray-50 text-sm"
               >
                 <option value="">All days</option>
@@ -264,10 +288,42 @@ export default function TimetablePage() {
         {/* RESULTS */}
         {showResults && selectedSections.length > 0 && (
           <div className="space-y-6">
+            {suggestions.length > 0 && <SuggestionsCard suggestions={suggestions} onExclude={toggleSection} />}
             <ResultsList results={results} />
             <ResultsGrid results={results} periods={periods} sections={selectedSections} />
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+function SuggestionsCard({
+  suggestions,
+  onExclude,
+}: {
+  suggestions: ExclusionSuggestion[];
+  onExclude: (sectionName: string) => void;
+}) {
+  return (
+    <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 space-y-3">
+      <p className="text-sm font-bold text-amber-900 flex items-center gap-2">
+        <Lightbulb className="w-4 h-4" /> Suggestion
+      </p>
+      <div className="space-y-2">
+        {suggestions.map((s) => (
+          <div key={s.sectionName} className="flex items-center justify-between gap-4 text-sm">
+            <span className="text-amber-800">
+              Excluding <strong>{s.sectionName}</strong> would free up {s.additionalMinutes} more minutes of common time.
+            </span>
+            <button
+              onClick={() => onExclude(s.sectionName)}
+              className="flex-shrink-0 text-xs font-bold text-amber-900 border border-amber-300 rounded-full px-3 py-1 hover:bg-amber-100"
+            >
+              Exclude
+            </button>
+          </div>
+        ))}
       </div>
     </div>
   );
