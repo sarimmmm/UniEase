@@ -20,7 +20,6 @@ export default function FacultyPage() {
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [isAnonymous, setIsAnonymous] = useState(false); // Anonymity State
   const [reviewForm, setReviewForm] = useState({ rating: 5, comment: '' });
 
   useEffect(() => {
@@ -68,7 +67,6 @@ export default function FacultyPage() {
   const handleToggle = (id: string) => {
     setSelectedFacultyId(selectedFacultyId === id ? null : id);
     setShowReviewForm(false);
-    setIsAnonymous(false);
   };
 
   const handleSubmitReview = async (e: React.FormEvent, facultyId: string) => {
@@ -76,7 +74,7 @@ export default function FacultyPage() {
     if (!isAuthenticated) return setShowLoginModal(true);
 
     const currentFaculty = facultyList.find(f => f.id === facultyId);
-    const displayUserName = isAnonymous ? "Anonymous Student" : (user.email?.split('@')[0] || 'Student');
+    const displayUserName = user.email?.split('@')[0] || 'Student';
 
     const result = await addFacultyReview({
       facultyId: facultyId,
@@ -100,7 +98,6 @@ export default function FacultyPage() {
       setAllReviews([newLocalReview, ...allReviews]);
       setReviewForm({ rating: 5, comment: '' });
       setShowReviewForm(false);
-      setIsAnonymous(false);
     } else {
       alert(`Error: ${result.error}`);
     }
@@ -210,24 +207,10 @@ export default function FacultyPage() {
                             </p>
                           </div>
                           
-                          <div className="flex items-center justify-between">
-                            <div className="flex gap-1.5">
-                              {[1, 2, 3, 4, 5].map(s => (
-                                <Star key={s} className={`w-6 h-6 cursor-pointer transition-colors ${s <= reviewForm.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-200'}`} onClick={() => setReviewForm({ ...reviewForm, rating: s })} />
-                              ))}
-                            </div>
-                            
-                            {/* ANONYMITY TOGGLE */}
-                            <div className="flex items-center gap-2">
-                              <input 
-                                type="checkbox" 
-                                id="anonymous" 
-                                checked={isAnonymous}
-                                onChange={(e) => setIsAnonymous(e.target.checked)}
-                                className="w-4 h-4 rounded border-gray-300 text-[#1e3a8a] focus:ring-[#1e3a8a]"
-                              />
-                              <label htmlFor="anonymous" className="text-xs font-bold text-slate-500 uppercase tracking-wider cursor-pointer">Post Anonymously</label>
-                            </div>
+                          <div className="flex gap-1.5">
+                            {[1, 2, 3, 4, 5].map(s => (
+                              <Star key={s} className={`w-6 h-6 cursor-pointer transition-colors ${s <= reviewForm.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-200'}`} onClick={() => setReviewForm({ ...reviewForm, rating: s })} />
+                            ))}
                           </div>
 
                           <textarea className="w-full p-4 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-[#1e3a8a]/20" placeholder="Share your experience..." rows={3} value={reviewForm.comment} onChange={e => setReviewForm({ ...reviewForm, comment: e.target.value })} required />
@@ -242,10 +225,7 @@ export default function FacultyPage() {
                           reviews.map((r) => (
                             <div key={r.id} className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm">
                               <div className="flex justify-between items-center mb-2">
-                                <div className="flex items-center gap-2">
-                                  <span className="text-sm font-bold text-gray-800">{r.studentName}</span>
-                                  {r.studentName === "Anonymous Student" && <span className="text-[9px] px-1.5 py-0.5 bg-slate-100 text-slate-500 rounded font-bold uppercase tracking-tighter border border-slate-200">Private</span>}
-                                </div>
+                                <span className="text-sm font-bold text-gray-800">{r.studentName}</span>
                                 <div className="flex gap-0.5">
                                   {[1, 2, 3, 4, 5].map(s => <Star key={s} className={`w-3.5 h-3.5 ${s <= r.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-100'}`} />)}
                                 </div>
