@@ -7,12 +7,17 @@ import { CardSkeleton } from '@/components/LoadingSkeleton';
 import { loadOfficialTimetable, parseUploadedTimetable } from '@/app/actions/timetable';
 import { computeCommonFreeSlots, formatClockTime, DayFreeResult } from '@/lib/timetable-freeslots';
 import { Day, DAYS, ParsedSection } from '@/lib/timetable-parser/types';
-import { OFFICIAL_TIMETABLE_URL } from '@/lib/timetable-constants';
-import { Upload, School, CheckCircle2, AlertTriangle, Search, CalendarClock, FileText, ChevronDown, ChevronUp, Lightbulb } from 'lucide-react';
+import { OFFICIAL_TIMETABLE_URL, OFFICIAL_ROOMS } from '@/lib/timetable-constants';
+import RoomAvailability from './RoomAvailability';
+import { Upload, School, CheckCircle2, AlertTriangle, Search, CalendarClock, FileText, ChevronDown, ChevronUp, Lightbulb, DoorOpen } from 'lucide-react';
 
 const DAY_LABELS: Record<Day, string> = { Mo: 'Monday', Tu: 'Tuesday', We: 'Wednesday', Th: 'Thursday', Fr: 'Friday' };
 
 type Source = 'none' | 'official' | 'upload';
+type View = 'free-slots' | 'rooms';
+
+// Uploaded files may come from another campus, so only rooms they mention are listed.
+const NO_KNOWN_ROOMS: readonly string[] = [];
 
 function totalFreeMinutes(results: DayFreeResult[]): number {
   return results.reduce((sum, r) => sum + (r.incomplete ? 0 : r.slots.reduce((s, sl) => s + sl.minutes, 0)), 0);
@@ -35,6 +40,7 @@ export default function TimetablePage() {
   const [showResults, setShowResults] = useState(false);
   const [showPdf, setShowPdf] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string>(OFFICIAL_TIMETABLE_URL);
+  const [view, setView] = useState<View>('free-slots');
 
   const selectedSections = useMemo(
     () => (sections ?? []).filter((s) => s.name && selected.has(s.name)),
@@ -196,8 +202,23 @@ export default function TimetablePage() {
           </div>
         )}
 
-        {/* PREVIEW / CONFIDENCE STEP */}
         {!loading && sections && (
+          <div className="flex gap-1 p-1 bg-white rounded-xl shadow-sm border border-gray-100 w-full sm:w-fit">
+            <ViewTab active={view === 'free-slots'} onClick={() => setView('free-slots')}>
+              <CalendarClock className="w-4 h-4" /> Common free slots
+            </ViewTab>
+            <ViewTab active={view === 'rooms'} onClick={() => setView('rooms')}>
+              <DoorOpen className="w-4 h-4" /> Room availability
+            </ViewTab>
+          </div>
+        )}
+
+        {!loading && sections && view === 'rooms' && (
+          <RoomAvailability sections={sections} knownRooms={source === 'official' ? OFFICIAL_ROOMS : NO_KNOWN_ROOMS} />
+        )}
+
+        {/* PREVIEW / CONFIDENCE STEP */}
+        {!loading && sections && view === 'free-slots' && (
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-bold text-gray-900">2. Select sections</h2>
@@ -260,7 +281,7 @@ export default function TimetablePage() {
         )}
 
         {/* DAY FILTER + ACTION */}
-        {!loading && sections && selected.size > 0 && (
+        {!loading && sections && view === 'free-slots' && selected.size > 0 && (
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 space-y-4">
             <h2 className="text-lg font-bold text-gray-900">3. Optional day filter</h2>
             <div className="flex flex-col sm:flex-row gap-4">
@@ -286,7 +307,7 @@ export default function TimetablePage() {
         )}
 
         {/* RESULTS */}
-        {showResults && selectedSections.length > 0 && (
+        {view === 'free-slots' && showResults && selectedSections.length > 0 && (
           <div className="space-y-6">
             {suggestions.length > 0 && <SuggestionsCard suggestions={suggestions} onExclude={toggleSection} />}
             <ResultsList results={results} />
@@ -295,6 +316,19 @@ export default function TimetablePage() {
         )}
       </div>
     </div>
+  );
+}
+
+function ViewTab({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 sm:px-4 py-2 rounded-lg text-sm font-semibold whitespace-nowrap transition-colors ${
+        active ? 'bg-[#1e3a8a] text-white' : 'text-gray-600 hover:bg-gray-50'
+      }`}
+    >
+      {children}
+    </button>
   );
 }
 

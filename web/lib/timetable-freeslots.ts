@@ -14,7 +14,7 @@ export interface DayFreeResult {
   slots: FreeWindow[];
 }
 
-function timeToMinutes(t: string): number | null {
+export function timeToMinutes(t: string): number | null {
   const m = t.trim().match(/^(\d{1,2}):(\d{2})$/);
   if (!m) return null;
   return parseInt(m[1], 10) * 60 + parseInt(m[2], 10);

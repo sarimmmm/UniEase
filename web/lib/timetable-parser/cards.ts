@@ -5,6 +5,8 @@ import { clusterByY, median } from './geometry';
 
 type Bands = Partial<Record<Day, [number, number]>>;
 
+const Y_TOLERANCE = 1;
+
 function yCenter(i: StructuredTextItem): number {
   return i.y + i.height / 2;
 }
@@ -73,8 +75,11 @@ export function detectClassCards(
   const horizontals = lines.filter((l) => l.x1 - l.x0 >= l.y1 - l.y0);
   const hasRules = verticals.some((v) => v.x0 > columnBoundaries[0] + snap && v.x0 < columnBoundaries[N] - snap);
 
+  // x is matched loosely (text-derived boundaries vs drawn rules), but y
+  // tightly: a label near a row's edge must not pick up the rules of the
+  // day row next to it.
   const hasVerticalAt = (x: number, y: number) =>
-    verticals.some((v) => Math.abs(v.x0 - x) <= snap && y >= v.y0 - snap && y <= v.y1 + snap);
+    verticals.some((v) => Math.abs(v.x0 - x) <= snap && y >= v.y0 - Y_TOLERANCE && y <= v.y1 + Y_TOLERANCE);
 
   const roomLabels = contentItems.filter((i) => ROOM_LABEL_RE.test(i.str.trim()));
   const blocks: TimetableBlock[] = [];
@@ -107,9 +112,9 @@ export function detectClassCards(
     const x1 = columnBoundaries[end];
 
     // Stacked cards in the same slot are separated by horizontal rules
-    // spanning (most of) the card's width.
+    // spanning (most of) the card's width. The row's own top/bottom rules
+    // qualify too, and are tighter than the text-derived band edges.
     const dividers = horizontals
-      .filter((h) => h.y0 > band[0] + snap && h.y0 < band[1] - snap)
       .filter((h) => Math.min(h.x1, x1) - Math.max(h.x0, x0) > colWidth / 2)
       .map((h) => h.y0);
     const top = Math.min(band[1], ...dividers.filter((y) => y > yc));
