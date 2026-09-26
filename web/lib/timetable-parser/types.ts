@@ -7,13 +7,26 @@ export interface PeriodSlot {
   end: string;
 }
 
+/**
+ * One class card on the grid, anchored on its printed room label. Cards
+ * stacked in the same time slot (e.g. two groups of a section in different
+ * rooms) are separate blocks with overlapping periods.
+ */
 export interface TimetableBlock {
   day: Day;
   startPeriod: number; // 0-indexed
   endPeriod: number; // 0-indexed, inclusive
+  room: string;
   courseText?: string;
-  room?: string;
   instructor?: string;
+}
+
+/** An axis-aligned ruled line in PDF user space (same space as text items). */
+export interface LineSegment {
+  x0: number;
+  x1: number;
+  y0: number;
+  y1: number;
 }
 
 export interface ParsedSection {
